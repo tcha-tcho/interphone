@@ -78,6 +78,7 @@ crossCookie.prototype.onMessage = function (event,_self) {
     if (event.origin != get_host(frame)) return;
     if (win.CCallowed_hosts.indexOf(get_host(frame)) == -1) return;
   };
+  if (!event.data) return;
   var msg = JSON.parse(event.data);
   if(!msg) return;
   if (msg.CCready) {
