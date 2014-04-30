@@ -74,9 +74,8 @@ crossCookie.prototype.set = function(sKey,sVal) {
 }
 
 crossCookie.prototype.onMessage = function (event,_self) {
-  console.log(event.origin)
   if (win.CCallowed_hosts != "*") {
-    // var originHostname = event.origin.split('://')[1].split(':')[0];
+    if (event.origin != get_host(frame)) return;
     if (win.CCallowed_hosts.indexOf(get_host(frame)) == -1) return;
   };
   var msg = JSON.parse(event.data);
