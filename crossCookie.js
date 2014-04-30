@@ -83,7 +83,7 @@ crossCookie.prototype.onMessage = function (event,_self) {
   if (msg.CCready) {
     win.CCon_ready();
   } else if (msg.CCget) {
-    var response = {"CCresponse":[msg.CRget,get_cookie(msg.CRget.split(":::")[0])]};
+    var response = {"CCresponse":[msg.CRget,get_cookie(msg.CCget.split(":::")[0])]};
     send_cookie(response);
   } else if (msg.CCresponse) {
     reqs[msgCCresponse[0]](msg.CCresponse[1]);
