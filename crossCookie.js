@@ -48,7 +48,7 @@ crossCookie.prototype.send = function (obj) {
   //   if((this.o.protected_cookies.indexOf(key) == -1))
   //     obj[key] = "!protected!";
   // };
-  console.log(this.o.protected_cookies)
+  // console.log(this.o.protected_cookies)
   frame.postMessage(JSON.stringify(obj), "*");
 }
 
@@ -90,6 +90,7 @@ crossCookie.prototype.onMessage = function (event,_self) {
   if (!event.data) return;
   var msg = JSON.parse(event.data);
   if(!msg) return;
+  console.log(event.origin, JSON.stringify(msg))
   if (msg.CCim_ready) {
     is_ready = true;
     win.CCon_ready();
