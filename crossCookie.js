@@ -20,6 +20,11 @@ if (!set_cookie) {
 };
 
 
+function get_host(win) {
+  return win.location.protocol + "//" + win.location.hostname;
+}
+
+
 function crossCookie(config) {
   this.defaults = {
      allowed_hosts: "*"
@@ -32,7 +37,7 @@ function crossCookie(config) {
 var win = window;
 var frame;
 var reqs = {};
-var hostname = (win.location.hostname || "*");
+var hostname = (get_host(win) || "*");
 
 crossCookie.prototype.send_cookie = function (obj) {
   console.log(hostname,obj,JSON.stringify(obj));
@@ -65,7 +70,7 @@ crossCookie.prototype.set = function(sKey,sVal) {
     var storage = frame.localStorage;
     var obj = {};
     obj[sKey] = sVal;
-    storage.setItem(frame.location.hostname, JSON.stringify(obj));
+    storage.setItem(get_host(frame), JSON.stringify(obj));
     set_cookie(sKey,sVal);
   }
   this.send_cookie(obj);
