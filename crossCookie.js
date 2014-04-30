@@ -40,7 +40,7 @@ var interval;
 var is_ready;
 
 crossCookie.prototype.send = function (obj) {
-  for(var key in obj) {var sKey = key; break;}
+  for(var key in obj) {var sKey = key;}
   console.log(this.o.protected_cookies, sKey)
   if (this.o.protected_cookies.indexOf(sKey) != -1) {
     console.log("eitaaaa")
