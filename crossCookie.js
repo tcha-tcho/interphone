@@ -86,6 +86,7 @@ crossCookie.prototype.onMessage = function (event,_self) {
     var response = {"CCresponse":[msg.CRget,get_cookie(msg.CCget.split(":::")[0])]};
     window.CCsend_cookie(response);
   } else if (msg.CCresponse) {
+    console.log(msg.CCresponse);
     reqs[msg.CCresponse[0]](msg.CCresponse[1]);
     delete reqs[msgCCresponse[0]];
   } else {
