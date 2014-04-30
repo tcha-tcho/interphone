@@ -2,16 +2,14 @@
 <html>
 <head>
   <title>Simple crossCookie Server</title>
-  <script type="text/javascript" src="../crossCookie.js"></script>
+  <script type="text/javascript" src="./crossCookie.js"></script>
   <script type="text/javascript">
+    console.log("starting crossCookie Server")
     var crosscookie = new crossCookie({
       on_ready: function(){
-        crosscookie.set("CRCookie","This is awesome!");
-        crosscookie.get("CRCookie",function(data){
-          console.log("data",data)
-        });
+        console.log("server ready")
+        crosscookie.set("CCCookie","This is awesome!");
       }
-      ,serverUrl: "./test.html"
     });
   </script>
 </head>
