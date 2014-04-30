@@ -105,8 +105,7 @@ crossCookie.prototype.init = function (config) {
       return;
   }
 
-  window.CCsend_cookie = _self.send_cookie;
-
+  win.CCsend_cookie = _self.send_cookie;
   win.CCallowed_hosts = this.o.allowed_hosts;
   win.CCon_ready = this.o.on_ready;
 
