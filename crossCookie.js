@@ -40,15 +40,13 @@ var interval;
 var is_ready;
 
 crossCookie.prototype.protected_cookie = function(sKey) {
-  return ;
+  return (this.o.protected_cookies.indexOf(sKey) == -1);
 }
 
 crossCookie.prototype.send = function (obj) {
-  for(var key in obj) {
-    if(this.o.protected_cookies.indexOf(key) != -1) {
-      console.log("forbitten")
-      return;
-    }
+  for(var key in obj) {var sKey = key; break;}
+  if (this.protected_cookie(sKey)) {
+    obj[sKey] = "protected";
   };
   frame.postMessage(JSON.stringify(obj), "*");
 }
@@ -91,7 +89,6 @@ crossCookie.prototype.onMessage = function (event,_self) {
   if (!event.data) return;
   var msg = JSON.parse(event.data);
   if(!msg) return;
-  console.log(event.origin, JSON.stringify(msg))
   if (msg.CCim_ready) {
     is_ready = true;
     win.CCon_ready();
