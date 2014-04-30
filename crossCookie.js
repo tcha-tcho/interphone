@@ -19,7 +19,6 @@ if (!set_cookie) {
   }
 };
 
-
 function get_host(win) {
   return win.location.protocol + "//" + win.location.hostname;
 }
@@ -29,15 +28,15 @@ function crossCookie(config) {
      allowed_hosts: "*"
     ,serverUrl: "https://rawgit.com/tcha-tcho/crossCookie/master/test/server.html"
     ,on_ready: function(){}
+    ,on_cookie: function(){}
   }
   this.init(config);
 }
 
 var win = window;
 var frame;
-var reqs = {};
 
-crossCookie.prototype.send_cookie = function (obj) {
+crossCookie.prototype.send = function (obj) {
   frame.postMessage(JSON.stringify(obj), "*");
 }
 
@@ -55,14 +54,7 @@ crossCookie.prototype.setup_iframe = function () {
   iframe.src = this.o.serverUrl;
   return iframe;
 };
-
-crossCookie.prototype.get = function(sKey,callback) {
-  var request_name = sKey+":::"+(new Date().getTime());
-  reqs[request_name] = callback;
-  frame.postMessage('{"CCget":"'+request_name+'"}', "*");
-}
-
-crossCookie.prototype.set = function(sKey,sVal) {
+crossCookie.prototype.set_local_cookie = function(sKey,sVal) {
   if (sVal != get_cookie(sKey)) {
     var storage = frame.localStorage;
     var obj = {};
@@ -70,7 +62,17 @@ crossCookie.prototype.set = function(sKey,sVal) {
     storage.setItem(get_host(frame), JSON.stringify(obj));
     set_cookie(sKey,sVal);
   }
-  this.send_cookie(obj);
+}
+
+crossCookie.prototype.get = function(sKey,callback) {
+  // var request_name = sKey+":::"+(new Date().getTime());
+  // reqs[request_name] = callback;
+  frame.postMessage('{"CCget":"'+sKey+'"}', "*");
+}
+
+crossCookie.prototype.set = function(sKey,sVal) {
+  this.set_local_cookie(sKey,sVal);
+  this.send({CCset_cookie:[skey,sVal]});
 }
 
 crossCookie.prototype.onMessage = function (event,_self) {
@@ -85,15 +87,14 @@ crossCookie.prototype.onMessage = function (event,_self) {
   if (msg.CCready) {
     win.CCon_ready();
   } else if (msg.CCget) {
-    var cookie = get_cookie(msg.CCget.split(":::")[0]);
-    console.log(get_cookie("CCCookie"))
-    var response = {"CCresponse":[msg.CCget,cookie]};
+    var response = {"CCresponse":[msg.CCget,get_cookie(msg.CCget)]};
     console.log(response)
-    window.CCsend_cookie(response);
+    win.CCsend(response);
   } else if (msg.CCresponse) {
     console.log(msg.CCresponse);
-    reqs[msg.CCresponse[0]](msg.CCresponse[1]);
-    delete reqs[msg.CCresponse[0]];
+    win.CCon_cookie(msg.CCresponse[0],msg.CCresponse[1])
+  } else if (msg.CCset_cookie) {
+    win.CCset_local_cookie(sKey,sVal);
   } else {
     set_cookie(msg);
   };
@@ -111,9 +112,11 @@ crossCookie.prototype.init = function (config) {
       return;
   }
 
-  win.CCsend_cookie = _self.send_cookie;
+  win.CCsend = _self.send;
   win.CCallowed_hosts = this.o.allowed_hosts;
+  win.CCset_local_cookie = this.set_local_cookie;
   win.CCon_ready = this.o.on_ready;
+  win.CCon_ready = this.o.on_cookie;
 
   if (!frame) {
     frame = (win.top == win) ? _self.setup_iframe().contentWindow : win.top;
@@ -126,5 +129,5 @@ crossCookie.prototype.init = function (config) {
     win.attachEvent('onmessage', _self.onMessage);
   }
 
-  _self.send_cookie({CCready:true});
+  _self.send({CCready:true});
 };

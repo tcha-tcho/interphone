@@ -12,9 +12,10 @@
     var crosscookie = new crossCookie({
       on_ready: function() {
         console.log("client ready")
-        crosscookie.get("CCCookie",function(cookie){
-          console.log("CCCookie is: ",cookie)
-        })
+        // crosscookie.get("CCCookie");
+      }
+      ,on_cookie: function(key,val) {
+        console.log(key,val);
       }
     });
   </script>
