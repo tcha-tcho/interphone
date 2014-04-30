@@ -116,7 +116,7 @@ crossCookie.prototype.init = function (config) {
   win.CCallowed_hosts = this.o.allowed_hosts;
   win.CCset_local_cookie = this.set_local_cookie;
   win.CCon_ready = this.o.on_ready;
-  win.CCon_ready = this.o.on_cookie;
+  win.CCon_cookie = this.o.on_cookie;
 
   if (!frame) {
     frame = (win.top == win) ? _self.setup_iframe().contentWindow : win.top;
