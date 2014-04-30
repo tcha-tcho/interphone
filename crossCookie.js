@@ -36,12 +36,9 @@ function crossCookie(config) {
 var win = window;
 var frame;
 var reqs = {};
-var hostname = (get_host(win) || "*");
-hostname = "*";
 
 crossCookie.prototype.send_cookie = function (obj) {
-  console.log(hostname,obj,JSON.stringify(obj));
-  frame.postMessage(JSON.stringify(obj), hostname);
+  frame.postMessage(JSON.stringify(obj), "*");
 }
 
 crossCookie.prototype.setup_iframe = function () {
@@ -62,7 +59,7 @@ crossCookie.prototype.setup_iframe = function () {
 crossCookie.prototype.get = function(sKey,callback) {
   var request_name = sKey+":::"+(new Date().getTime());
   reqs[request_name] = callback;
-  frame.postMessage('{"CCget":"'+request_name+'"}', hostname);
+  frame.postMessage('{"CCget":"'+request_name+'"}', "*");
 }
 
 crossCookie.prototype.set = function(sKey,sVal) {
@@ -80,7 +77,7 @@ crossCookie.prototype.onMessage = function (event,_self) {
   console.log(event.origin)
   if (win.CCallowed_hosts != "*") {
     // var originHostname = event.origin.split('://')[1].split(':')[0];
-    if (win.CCallowed_hosts.indexOf(event.origin) == -1) return;
+    if (win.CCallowed_hosts.indexOf(get_host(frame)) == -1) return;
   };
   var msg = JSON.parse(event.data);
   if(!msg) return;
@@ -95,7 +92,7 @@ crossCookie.prototype.onMessage = function (event,_self) {
   } else {
     set_cookie(msg);
   };
-}
+};
 
 crossCookie.prototype.init = function (config) {
   var _self = this;
