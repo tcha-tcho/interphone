@@ -23,7 +23,7 @@ if (!set_cookie) {
 function crossCookie(config) {
   this.defaults = {
      allowed_hosts: "*"
-    ,serverUrl: "https://rawgit.com/tcha-tcho/crossCookie/master/test/test.html"
+    ,serverUrl: "https://rawgit.com/tcha-tcho/crossCookie/master/test/server.html"
     ,on_ready: function(){}
   }
   this.init(config);
@@ -53,15 +53,33 @@ crossCookie.prototype.setup_iframe = function () {
   return iframe;
 };
 
-crossCookie.prototype.onMessage = function (event) {
-  if (this.o.allowed_hosts != "*") {
+crossCookie.prototype.get = function(sKey,callback) {
+  var request_name = sKey+":::"+(new Date().getTime());
+  reqs[request_name] = callback;
+  frame.postMessage('{"CCget":"'+request_name+'"}', hostname);
+}
+
+crossCookie.prototype.set = function(sKey,sVal) {
+  if (sVal != get_cookie(sKey)) {
+    var storage = frame.localStorage;
+    var obj = {};
+    obj[sKey] = sVal;
+    storage.setItem(frame.location.hostname, JSON.stringify(obj));
+    set_cookie(sKey,sVal);
+  }
+  this.send_cookie(obj);
+}
+
+crossCookie.prototype.onMessage = function (event,_self) {
+    console.log(event.origin)
+  if (win.CCallowed_hosts != "*") {
     // var originHostname = event.origin.split('://')[1].split(':')[0];
-    if (this.o.allowed_hosts.indexOf(event.origin) == -1) return;
+    if (win.CCallowed_hosts.indexOf(event.origin) == -1) return;
   };
   var msg = JSON.parse(event.data);
   if(!msg) return;
   if (msg.CCready) {
-    this.o.on_ready();
+    win.CCon_ready();
   } else if (msg.CCget) {
     var response = {"CCresponse":[msg.CRget,get_cookie(msg.CRget.split(":::")[0])]};
     send_cookie(response);
@@ -72,28 +90,11 @@ crossCookie.prototype.onMessage = function (event) {
     set_cookie(msg);
   };
 }
-crossCookie.prototype.get = function(sKey,callback) {
-  var request_name = sKey+":::"+(new Date().getTime());
-  reqs[request_name] = callback;
-  frame.postMessage('{"CCget":"'+request_name+'"}', hostname);
-}
-
-crossCookie.prototype.set = function(sKey,sVal) {
-  var _self = this;
-  if (sVal != get_cookie(sKey)) {
-    var storage = frame.localStorage;
-    var obj = {};
-    obj[sKey] = sVal;
-    storage.setItem(frame.location.hostname, JSON.stringify(obj));
-    set_cookie(sKey,sVal);
-  }
-  _self.send_cookie(obj);
-}
 
 crossCookie.prototype.init = function (config) {
   var _self = this;
-  _self.o = _self.extend(_self.defaults, config);
-  delete _self.defaults;
+  this.o = _self.extend(_self.defaults, config);
+  delete this.defaults;
   if(
       !win.postMessage ||
       !win.localStorage ||
@@ -101,6 +102,9 @@ crossCookie.prototype.init = function (config) {
     ) {
       return;
   }
+
+  win.CCallowed_hosts = this.o.allowed_hosts;
+  win.CCon_ready = this.o.on_ready;
 
   if (!frame) {
     frame = (win.top == win) ? _self.setup_iframe().contentWindow : win.top;
