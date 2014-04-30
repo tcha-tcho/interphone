@@ -87,7 +87,8 @@ crossCookie.prototype.onMessage = function (event,_self) {
     win.CCon_cookie(msg.CCresponse[0],msg.CCresponse[1])
   } else if (msg.CCset_cookie) {
     win.CCset_local_cookie(msg.CCset_cookie[0],msg.CCset_cookie[1]);
-    win.CCon_cookie(msg.CCset_cookie[0],msg.CCset_cookie[1]);
+    var response = {"CCresponse":[msg.CCset_cookie[0],msg.CCset_cookie[0]]};
+    win.CCsend(response);
   } else {
     set_cookie(msg);
   };
