@@ -39,6 +39,9 @@ Yes we are watching you IE!
 
 To run the test suite just open the ***```test/test.html```*** file at your browser
 
+Or access:
+***```https://rawgit.com/tcha-tcho/crossCookie/master/test/test.html```***
+
 ## Credits
 
 This library was a crazy dream build by [Tcha-Tcho](https://github.com/tcha-tcho);

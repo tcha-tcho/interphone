@@ -23,6 +23,7 @@ if (!set_cookie) {
 function crossCookie(config) {
   this.defaults = {
      allowed_hosts: "*"
+    ,serverUrl: "https://rawgit.com/tcha-tcho/crossCookie/master/test/test.html"
     ,on_ready: function(){}
   }
   this.init(config);
@@ -39,6 +40,7 @@ crossCookie.prototype.send_cookie = function (obj) {
 crossCookie.prototype.setup_iframe = function () {
   // Create hidden iframe dom element
   var doc = win.document;
+  window.doc = doc
   var iframe = doc.createElement('iframe');
   var iframeStyle = iframe.style;
   iframeStyle.position = 'absolute';
@@ -46,7 +48,7 @@ crossCookie.prototype.setup_iframe = function () {
 
   // Append iframe to the dom and load up crossCookie.org inside
   doc.body.appendChild(iframe);
-  iframe.src = this.o.crossCookieServerUrl;
+  iframe.src = this.o.serverUrl;
   return iframe;
 };
 
@@ -57,7 +59,9 @@ crossCookie.prototype.onMessage = function (event) {
   };
   var msg = JSON.parse(event.data);
   if(!msg) return;
-  if (msg.CCget) {
+  if (msg.CCready) {
+    this.o.on_ready();
+  } else if (msg.CCget) {
     var response = {"CCresponse":[msg.CRget,get_cookie(msg.CRget.split(":::")[0])]};
     send_cookie(response);
   } else if (msg.CCresponse) {
@@ -77,7 +81,8 @@ crossCookie.prototype.set = function(sKey,sVal) {
   var _self = this;
   if (sVal != get_cookie(sKey)) {
     var storage = (iframe || win.parent).localStorage;
-    var obj = {}, obj[sKey] = sVal;
+    var obj = {};
+    obj[sKey] = sVal;
     storage.setItem((iframe.contentWindow || win).location.hostname, JSON.stringify(obj));
     set_cookie(sKey,sVal);
   }
@@ -107,5 +112,5 @@ crossCookie.prototype.init = function (config) {
     win.attachEvent('onmessage', _self.onMessage);
   }
 
-  _self.o.on_ready();
+  _self.send_cookie({CCready:true});
 };
