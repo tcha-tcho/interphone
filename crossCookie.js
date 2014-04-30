@@ -39,7 +39,14 @@ var frame;
 var interval;
 var is_ready;
 
+crossCookie.prototype.protected_cookie = function(sKey) {
+  return (this.o.protected_cookies.indexOf(sKey) == -1);
+}
+
 crossCookie.prototype.send = function (obj) {
+  for(var key in obj) {
+    if(this.protected_cookie(key)) obj[key] = "!protected!";
+  };
   frame.postMessage(JSON.stringify(obj), "*");
 }
 
@@ -57,13 +64,14 @@ crossCookie.prototype.setup_iframe = function () {
   iframe.src = this.o.serverUrl;
   return iframe;
 };
+
 crossCookie.prototype.set_local_cookie = function(sKey,sVal) {
   if (sVal != get_cookie(sKey)) {
     set_cookie(sKey,sVal);
   }
 }
 
-crossCookie.prototype.get = function(sKey,callback) {
+crossCookie.prototype.get = function(sKey) {
   frame.postMessage('{"CCget":"'+sKey+'"}', "*");
 }
 
@@ -80,19 +88,13 @@ crossCookie.prototype.onMessage = function (event,_self) {
   if (!event.data) return;
   var msg = JSON.parse(event.data);
   if(!msg) return;
-  console.log(event.origin, JSON.stringify(msg))
   if (msg.CCim_ready) {
     is_ready = true;
     win.CCon_ready();
   } else if (msg.CCare_you_ready) { //?
     win.CCsend({"CCim_ready":true});
   } else if (msg.CCget) {
-    if (this.o.protected_cookies.indexOf(sKey) == -1) {
-      var cookie = get_cookie(msg.CCget);
-    } else {
-      var cookie = "protected";
-    };
-    var response = {"CCresponse":[msg.CCget,cookie]};
+    var response = {"CCresponse":[msg.CCget,get_cookie(msg.CCget)]};
     win.CCsend(response);
   } else if (msg.CCresponse) {
     win.CCon_cookie(msg.CCresponse[0],msg.CCresponse[1])
@@ -133,16 +135,12 @@ crossCookie.prototype.init = function (config) {
     win.attachEvent('onmessage', _self.onMessage);
   }
 
-  if (!is_ready) {
-    interval = window.setInterval(function(){
-      if (is_ready) {
-        window.clearInterval(interval);
-        console.log("replied im_ready")
-      } else {
-        console.log("asking are_you_ready")
-        _self.send({CCare_you_ready:true}); //?
-      };
-    },300);
-  };
+  interval = window.setInterval(function(){
+    if (is_ready) {
+      window.clearInterval(interval);
+    } else {
+      _self.send({CCare_you_ready:true}); //?
+    };
+  },300);
 
 };
