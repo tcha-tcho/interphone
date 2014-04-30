@@ -41,7 +41,9 @@ var is_ready;
 
 crossCookie.prototype.send = function (obj) {
   for(var key in obj) {var sKey = key; break;}
+  console.log(this.o.protected_cookies, sKey)
   if (this.o.protected_cookies.indexOf(sKey) != -1) {
+    console.log("eitaaaa")
     obj[sKey] = "!protected!";
   };
   frame.postMessage(JSON.stringify(obj), "*");
@@ -139,6 +141,6 @@ crossCookie.prototype.init = function (config) {
     } else {
       _self.send({CCare_you_ready:true}); //?
     };
-  },300);
+  },1500);
 
 };
