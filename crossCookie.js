@@ -32,9 +32,10 @@ function crossCookie(config) {
 var win = window;
 var frame;
 var reqs = {};
+var hostname = (win.location.hostname || "*");
 
 crossCookie.prototype.send_cookie = function (obj) {
-  frame.postMessage(JSON.stringify(obj), win.location.hostname);
+  frame.postMessage(JSON.stringify(obj), hostname);
 }
 
 crossCookie.prototype.setup_iframe = function () {
@@ -47,7 +48,7 @@ crossCookie.prototype.setup_iframe = function () {
   iframeStyle.left = iframeStyle.top = '-999px';
 
   // Append iframe to the dom and load up crossCookie.org inside
-  doc.body.appendChild(iframe);
+  doc.head.appendChild(iframe);
   iframe.src = this.o.serverUrl;
   return iframe;
 };
@@ -74,16 +75,16 @@ crossCookie.prototype.onMessage = function (event) {
 crossCookie.prototype.get = function(sKey,callback) {
   var request_name = sKey+":::"+(new Date().getTime());
   reqs[request_name] = callback;
-  frame.postMessage('{"CCget":"'+request_name+'"}', win.location.hostname);
+  frame.postMessage('{"CCget":"'+request_name+'"}', hostname);
 }
 
 crossCookie.prototype.set = function(sKey,sVal) {
   var _self = this;
   if (sVal != get_cookie(sKey)) {
-    var storage = (iframe || win.parent).localStorage;
+    var storage = frame.localStorage;
     var obj = {};
     obj[sKey] = sVal;
-    storage.setItem((iframe.contentWindow || win).location.hostname, JSON.stringify(obj));
+    storage.setItem(frame.location.hostname, JSON.stringify(obj));
     set_cookie(sKey,sVal);
   }
   _self.send_cookie(obj);
@@ -102,7 +103,7 @@ crossCookie.prototype.init = function (config) {
   }
 
   if (!frame) {
-    frame = (win.top == win) ? _self.setup_iframe() : win.top;
+    frame = (win.top == win) ? _self.setup_iframe().contentWindow : win.top;
   };
 
   // Setup postMessage event listeners

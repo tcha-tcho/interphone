@@ -10,7 +10,9 @@
   <script src="./qunit-git.js"></script>
   <script src="../crossCookie.js"></script>
   <script type="text/javascript">
-
+    var crosscookie = new crossCookie({on_ready: function(){
+      console.log("ready")
+    }});
   </script>
   <br>
   Your cookie is:
