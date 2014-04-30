@@ -56,10 +56,6 @@ crossCookie.prototype.setup_iframe = function () {
 };
 crossCookie.prototype.set_local_cookie = function(sKey,sVal) {
   if (sVal != get_cookie(sKey)) {
-    var storage = frame.localStorage;
-    var obj = {};
-    obj[sKey] = sVal;
-    storage.setItem(get_host(frame), JSON.stringify(obj));
     set_cookie(sKey,sVal);
   }
 }
@@ -106,7 +102,6 @@ crossCookie.prototype.init = function (config) {
   delete this.defaults;
   if(
       !win.postMessage ||
-      !win.localStorage ||
       !win.JSON
     ) {
       return;
