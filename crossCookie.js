@@ -27,7 +27,6 @@ function crossCookie(config) {
   this.defaults = {
      allowed_hosts: "*"
     ,serverUrl: "https://rawgit.com/tcha-tcho/crossCookie/master/test/server.html"
-    ,protected_cookies: []
     ,on_ready: function(){}
     ,on_cookie: function(){}
   }
@@ -40,12 +39,6 @@ var interval;
 var is_ready;
 
 crossCookie.prototype.send = function (obj) {
-  for(var key in obj) {var sKey = key;}
-  console.log(this.o.protected_cookies, sKey)
-  if (this.o.protected_cookies.indexOf(sKey) != -1) {
-    console.log("eitaaaa")
-    obj[sKey] = "!protected!";
-  };
   frame.postMessage(JSON.stringify(obj), "*");
 }
 
@@ -63,14 +56,13 @@ crossCookie.prototype.setup_iframe = function () {
   iframe.src = this.o.serverUrl;
   return iframe;
 };
-
 crossCookie.prototype.set_local_cookie = function(sKey,sVal) {
   if (sVal != get_cookie(sKey)) {
     set_cookie(sKey,sVal);
   }
 }
 
-crossCookie.prototype.get = function(sKey) {
+crossCookie.prototype.get = function(sKey,callback) {
   frame.postMessage('{"CCget":"'+sKey+'"}', "*");
 }
 
@@ -135,12 +127,16 @@ crossCookie.prototype.init = function (config) {
     win.attachEvent('onmessage', _self.onMessage);
   }
 
-  interval = window.setInterval(function(){
-    if (is_ready) {
-      window.clearInterval(interval);
-    } else {
-      _self.send({CCare_you_ready:true}); //?
-    };
-  },1500);
-
+  if (!is_ready) {
+    interval = window.setInterval(function(){
+      if (is_ready) {
+        window.clearInterval(interval);
+        console.log("replied im_ready")
+      } else {
+        console.log("asking are_you_ready")
+        _self.send({CCare_you_ready:true}); //?
+      };
+    },300);
+  };
+  
 };
