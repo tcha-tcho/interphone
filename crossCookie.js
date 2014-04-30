@@ -27,6 +27,7 @@ function crossCookie(config) {
   this.defaults = {
      allowed_hosts: "*"
     ,serverUrl: "https://rawgit.com/tcha-tcho/crossCookie/master/test/server.html"
+    ,protected_cookies: []
     ,on_ready: function(){}
     ,on_cookie: function(){}
   }
@@ -35,6 +36,8 @@ function crossCookie(config) {
 
 var win = window;
 var frame;
+var interval;
+var is_ready;
 
 crossCookie.prototype.send = function (obj) {
   frame.postMessage(JSON.stringify(obj), "*");
@@ -78,10 +81,18 @@ crossCookie.prototype.onMessage = function (event,_self) {
   var msg = JSON.parse(event.data);
   if(!msg) return;
   console.log(event.origin, JSON.stringify(msg))
-  if (msg.CCready) {
+  if (msg.CCim_ready) {
+    is_ready = true;
     win.CCon_ready();
+  } else if (msg.CCare_you_ready) { //?
+    win.CCsend({"CCim_ready":true});
   } else if (msg.CCget) {
-    var response = {"CCresponse":[msg.CCget,get_cookie(msg.CCget)]};
+    if (this.o.protected_cookies.indexOf(sKey) == -1) {
+      var cookie = get_cookie(msg.CCget);
+    } else {
+      var cookie = "protected";
+    };
+    var response = {"CCresponse":[msg.CCget,cookie]};
     win.CCsend(response);
   } else if (msg.CCresponse) {
     win.CCon_cookie(msg.CCresponse[0],msg.CCresponse[1])
@@ -122,5 +133,16 @@ crossCookie.prototype.init = function (config) {
     win.attachEvent('onmessage', _self.onMessage);
   }
 
-  _self.send({CCready:true});
+  if (!is_ready) {
+    interval = window.setInterval(function(){
+      if (is_ready) {
+        window.clearInterval(interval);
+        console.log("replied im_ready")
+      } else {
+        console.log("asking are_you_ready")
+        _self.send({CCare_you_ready:true}); //?
+      };
+    },300);
+  };
+
 };
