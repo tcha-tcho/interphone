@@ -37,7 +37,7 @@ var win = window;
 var frame;
 var reqs = {};
 var hostname = (get_host(win) || "*");
-if (hostname == "file://") hostname = "*";
+hostname = "*";
 
 crossCookie.prototype.send_cookie = function (obj) {
   console.log(hostname,obj,JSON.stringify(obj));
