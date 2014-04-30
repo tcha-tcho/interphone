@@ -39,14 +39,10 @@ var frame;
 var interval;
 var is_ready;
 
-crossCookie.prototype.protected_cookie = function(sKey) {
-  return (this.o.protected_cookies.indexOf(sKey) == -1);
-}
-
 crossCookie.prototype.send = function (obj) {
   for(var key in obj) {var sKey = key; break;}
-  if (this.protected_cookie(sKey)) {
-    obj[sKey] = "protected";
+  if (this.o.protected_cookies.indexOf(sKey) != -1) {
+    obj[sKey] = "!protected!";
   };
   frame.postMessage(JSON.stringify(obj), "*");
 }
