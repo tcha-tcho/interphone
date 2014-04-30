@@ -11,6 +11,9 @@
         crosscookie.set("CCCookie","This is awesome!");
         crosscookie.set("CCCookie_protected","You don't gonna have this ever!");
       }
+      ,on_cookie: function(key,val){
+        console.log("on_cookie_server",key,val)
+      }
       ,protected_cookies: ["CCCookie_protected"]
     });
   </script>
