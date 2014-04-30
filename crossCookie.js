@@ -72,7 +72,7 @@ crossCookie.prototype.get = function(sKey,callback) {
 
 crossCookie.prototype.set = function(sKey,sVal) {
   this.set_local_cookie(sKey,sVal);
-  this.send({CCset_cookie:[skey,sVal]});
+  this.send({CCset_cookie:[sKey,sVal]});
 }
 
 crossCookie.prototype.onMessage = function (event,_self) {
@@ -94,7 +94,7 @@ crossCookie.prototype.onMessage = function (event,_self) {
     console.log(msg.CCresponse);
     win.CCon_cookie(msg.CCresponse[0],msg.CCresponse[1])
   } else if (msg.CCset_cookie) {
-    win.CCset_local_cookie(sKey,sVal);
+    win.CCset_local_cookie(msg.CCset_cookie[0],msg.CCset_cookie[1]);
   } else {
     set_cookie(msg);
   };
