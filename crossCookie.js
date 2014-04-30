@@ -24,7 +24,6 @@ function get_host(win) {
   return win.location.protocol + "//" + win.location.hostname;
 }
 
-
 function crossCookie(config) {
   this.defaults = {
      allowed_hosts: "*"
@@ -38,6 +37,7 @@ var win = window;
 var frame;
 var reqs = {};
 var hostname = (get_host(win) || "*");
+if (hostname == "file://") hostname = "*";
 
 crossCookie.prototype.send_cookie = function (obj) {
   console.log(hostname,obj,JSON.stringify(obj));
