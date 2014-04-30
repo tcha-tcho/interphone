@@ -35,6 +35,7 @@ var reqs = {};
 var hostname = (win.location.hostname || "*");
 
 crossCookie.prototype.send_cookie = function (obj) {
+  console.log(hostname,obj,JSON.stringify(obj));
   frame.postMessage(JSON.stringify(obj), hostname);
 }
 
