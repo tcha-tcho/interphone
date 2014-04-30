@@ -89,7 +89,7 @@ crossCookie.prototype.onMessage = function (event,_self) {
   } else if (msg.CCresponse) {
     console.log(msg.CCresponse);
     reqs[msg.CCresponse[0]](msg.CCresponse[1]);
-    delete reqs[msgCCresponse[0]];
+    delete reqs[msg.CCresponse[0]];
   } else {
     set_cookie(msg);
   };
