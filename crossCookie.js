@@ -27,6 +27,7 @@ function crossCookie(config) {
   this.defaults = {
      allowed_hosts: "*"
     ,serverUrl: "https://rawgit.com/tcha-tcho/crossCookie/master/test/server.html"
+    ,protected_cookies: []
     ,on_ready: function(){}
     ,on_cookie: function(){}
   }
@@ -66,15 +67,22 @@ crossCookie.prototype.get = function(sKey,callback) {
   frame.postMessage('{"CCget":"'+sKey+'"}', "*");
 }
 
+crossCookie.prototype.is_protected = function(sKey) {
+  return (this.o.protected_cookies.indexOf(sKey) != -1);
+}
+
 crossCookie.prototype.set = function(sKey,sVal) {
   this.set_local_cookie(sKey,sVal);
-  this.send({CCset_cookie:[sKey,sVal]});
+  if (!this.is_protected(sKey)) {
+    console.log("enviando")
+    this.send({CCset_cookie:[sKey,sVal]});
+  };
 }
 
 crossCookie.prototype.onMessage = function (event,_self) {
-  if (win.CCallowed_hosts != "*") {
+  if (_self.o.allowed_hosts != "*") {
     if (event.origin != get_host(frame)) return;
-    if (win.CCallowed_hosts.indexOf(get_host(frame)) == -1) return;
+    if (_self.o.allowed_hosts.indexOf(get_host(frame)) == -1) return;
   };
   if (!event.data) return;
   var msg = JSON.parse(event.data);
@@ -82,18 +90,28 @@ crossCookie.prototype.onMessage = function (event,_self) {
   console.log(event.origin, JSON.stringify(msg))
   if (msg.CCim_ready) {
     is_ready = true;
-    win.CCon_ready();
+    _self.o.on_ready();
   } else if (msg.CCare_you_ready) { //?
-    win.CCsend({"CCim_ready":true});
+    _self.send({"CCim_ready":true});
   } else if (msg.CCget) {
-    var response = {"CCresponse":[msg.CCget,get_cookie(msg.CCget)]};
-    win.CCsend(response);
-  } else if (msg.CCresponse) {
-    win.CCon_cookie(msg.CCresponse[0],msg.CCresponse[1])
+    if (_self.is_protected(msg.CCget)) {
+      var cookie = "!protected"
+    } else {
+      var cookie = get_cookie(msg.CCget);
+    };
+    _self.send({"CCresponse":[msg.CCget,cookie]});
   } else if (msg.CCset_cookie) {
-    win.CCset_local_cookie(msg.CCset_cookie[0],msg.CCset_cookie[1]);
-    var response = {"CCresponse":[msg.CCset_cookie[0],msg.CCset_cookie[0]]};
-    win.CCsend(response);
+    var sKey = msg.CCset_cookie[0];
+    if (_self.is_protected(sKey)) {
+      var cookie = "!protected";
+    } else {
+      var cookie = msg.CCset_cookie[1];
+      _self.set_local_cookie(sKey,cookie);
+    };
+    _self.send({"CCresponse":[sKey,cookie]});
+  } else if (msg.CCresponse) {
+    console.log("recebeu cookie")
+    _self.o.on_cookie(msg.CCresponse[0],msg.CCresponse[1])
   } else {
     set_cookie(msg);
   };
@@ -103,18 +121,8 @@ crossCookie.prototype.init = function (config) {
   var _self = this;
   this.o = _self.extend(_self.defaults, config);
   delete this.defaults;
-  if(
-      !win.postMessage ||
-      !win.JSON
-    ) {
-      return;
-  }
 
-  win.CCsend = _self.send;
-  win.CCallowed_hosts = this.o.allowed_hosts;
-  win.CCset_local_cookie = this.set_local_cookie;
-  win.CCon_ready = this.o.on_ready;
-  win.CCon_cookie = this.o.on_cookie;
+  if(!win.postMessage || !win.JSON ) return;
 
   if (!frame) {
     frame = (win.top == win) ? _self.setup_iframe().contentWindow : win.top;
@@ -122,17 +130,19 @@ crossCookie.prototype.init = function (config) {
 
   // Setup postMessage event listeners
   if (win.addEventListener) {
-    win.addEventListener('message', _self.onMessage, false);
+    win.addEventListener('message', function(event){
+      _self.onMessage(event,_self)
+    }, false);
   } else if(win.attachEvent) {
-    win.attachEvent('onmessage', _self.onMessage);
+    win.attachEvent('onmessage', function(event){
+      _self.onMessage(event,_self)
+    });
   }
 
   interval = window.setInterval(function(){
     if (is_ready) {
       window.clearInterval(interval);
-      console.log("replied im_ready")
     } else {
-      console.log("asking are_you_ready")
       _self.send({CCare_you_ready:true}); //?
     };
   },300);
