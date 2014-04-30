@@ -84,7 +84,7 @@ crossCookie.prototype.onMessage = function (event,_self) {
     win.CCon_ready();
   } else if (msg.CCget) {
     var response = {"CCresponse":[msg.CRget,get_cookie(msg.CCget.split(":::")[0])]};
-    send_cookie(response);
+    window.CCsend_cookie(response);
   } else if (msg.CCresponse) {
     reqs[msgCCresponse[0]](msg.CCresponse[1]);
     delete reqs[msgCCresponse[0]];
@@ -104,6 +104,8 @@ crossCookie.prototype.init = function (config) {
     ) {
       return;
   }
+
+  window.CCsend_cookie = _self.send_cookie;
 
   win.CCallowed_hosts = this.o.allowed_hosts;
   win.CCon_ready = this.o.on_ready;
