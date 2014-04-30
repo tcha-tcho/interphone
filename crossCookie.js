@@ -44,8 +44,9 @@ crossCookie.prototype.protected_cookie = function(sKey) {
 }
 
 crossCookie.prototype.send = function (obj) {
+  var this = _self;
   for(var key in obj) {
-    if(this.protected_cookie(key)) obj[key] = "!protected!";
+    if(_self.protected_cookie(key)) obj[key] = "!protected!";
   };
   frame.postMessage(JSON.stringify(obj), "*");
 }
