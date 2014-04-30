@@ -40,13 +40,13 @@ var interval;
 var is_ready;
 
 crossCookie.prototype.protected_cookie = function(sKey) {
-  return (this.o.protected_cookies.indexOf(sKey) == -1);
+  return ;
 }
 
 crossCookie.prototype.send = function (obj) {
-  var _self = this;
   for(var key in obj) {
-    if(_self.protected_cookie(key)) obj[key] = "!protected!";
+    if((this.o.protected_cookies.indexOf(key) == -1))
+      obj[key] = "!protected!";
   };
   frame.postMessage(JSON.stringify(obj), "*");
 }
