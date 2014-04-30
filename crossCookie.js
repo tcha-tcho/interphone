@@ -127,16 +127,14 @@ crossCookie.prototype.init = function (config) {
     win.attachEvent('onmessage', _self.onMessage);
   }
 
-  if (!is_ready) {
-    interval = window.setInterval(function(){
-      if (is_ready) {
-        window.clearInterval(interval);
-        console.log("replied im_ready")
-      } else {
-        console.log("asking are_you_ready")
-        _self.send({CCare_you_ready:true}); //?
-      };
-    },300);
-  };
-  
+  interval = window.setInterval(function(){
+    if (is_ready) {
+      window.clearInterval(interval);
+      console.log("replied im_ready")
+    } else {
+      console.log("asking are_you_ready")
+      _self.send({CCare_you_ready:true}); //?
+    };
+  },300);
+
 };
