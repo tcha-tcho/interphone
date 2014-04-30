@@ -81,6 +81,7 @@ crossCookie.prototype.onMessage = function (event,_self) {
   if (!event.data) return;
   var msg = JSON.parse(event.data);
   if(!msg) return;
+  console.log(msg)
   if (msg.CCready) {
     win.CCon_ready();
   } else if (msg.CCget) {
