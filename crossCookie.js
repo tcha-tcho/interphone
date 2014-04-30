@@ -61,8 +61,6 @@ crossCookie.prototype.set_local_cookie = function(sKey,sVal) {
 }
 
 crossCookie.prototype.get = function(sKey,callback) {
-  // var request_name = sKey+":::"+(new Date().getTime());
-  // reqs[request_name] = callback;
   frame.postMessage('{"CCget":"'+sKey+'"}', "*");
 }
 
@@ -79,15 +77,13 @@ crossCookie.prototype.onMessage = function (event,_self) {
   if (!event.data) return;
   var msg = JSON.parse(event.data);
   if(!msg) return;
-  console.log(msg)
+  console.log(event.origin, JSON.stringify(msg))
   if (msg.CCready) {
     win.CCon_ready();
   } else if (msg.CCget) {
     var response = {"CCresponse":[msg.CCget,get_cookie(msg.CCget)]};
-    console.log(response)
     win.CCsend(response);
   } else if (msg.CCresponse) {
-    console.log(msg.CCresponse);
     win.CCon_cookie(msg.CCresponse[0],msg.CCresponse[1])
   } else if (msg.CCset_cookie) {
     win.CCset_local_cookie(msg.CCset_cookie[0],msg.CCset_cookie[1]);
