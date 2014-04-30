@@ -44,10 +44,11 @@ crossCookie.prototype.protected_cookie = function(sKey) {
 }
 
 crossCookie.prototype.send = function (obj) {
-  for(var key in obj) {
-    if((this.o.protected_cookies.indexOf(key) == -1))
-      obj[key] = "!protected!";
-  };
+  // for(var key in obj) {
+  //   if((this.o.protected_cookies.indexOf(key) == -1))
+  //     obj[key] = "!protected!";
+  // };
+  console.log(this.o.protected_cookies)
   frame.postMessage(JSON.stringify(obj), "*");
 }
 
