@@ -70,7 +70,6 @@ crossCookie.prototype.is_protected = function(sKey) {
 crossCookie.prototype.set = function(sKey,sVal) {
   this.set_local_cookie(sKey,sVal);
   if (!this.is_protected(sKey)) {
-    console.log("enviando")
     this.send({CCset_cookie:[sKey,sVal]});
   };
 }
@@ -83,7 +82,6 @@ crossCookie.prototype.onMessage = function (event,_self) {
   if (!event.data) return;
   var msg = JSON.parse(event.data);
   if(!msg) return;
-  console.log(event.origin, JSON.stringify(msg))
   if (msg.CCim_ready) {
     is_ready = true;
     _self.o.on_ready();
@@ -99,15 +97,12 @@ crossCookie.prototype.onMessage = function (event,_self) {
   } else if (msg.CCset_cookie) {
     var sKey = msg.CCset_cookie[0];
     if (_self.is_protected(sKey)) {
-      var cookie = "!protected";
+      _self.send({"CCresponse":[sKey,"!protected"]});
     } else {
-      var cookie = msg.CCset_cookie[1];
-      _self.set_local_cookie(sKey,cookie);
+      _self.set_local_cookie(sKey,msg.CCset_cookie[1]);
+      _self.o.on_cookie(sKey,msg.CCset_cookie[1])
     };
-    // _self.send({"CCresponse":[sKey,cookie]});
-    _self.o.on_cookie(sKey,cookie)
   } else if (msg.CCresponse) {
-    console.log("recebeu cookie")
     _self.o.on_cookie(msg.CCresponse[0],msg.CCresponse[1])
   } else {
     _self.set_local_cookie(msg);
