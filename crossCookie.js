@@ -8,17 +8,6 @@ if (!Object.extend) {
   }
 };
 
-if (!set_cookie) {
-  var set_cookie = function (sKey,sValue) {
-    document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue);
-    return sValue;
-  }
-  var get_cookie = function (sKey) {
-    var regex = new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$");
-    return decodeURIComponent(document.cookie.replace(regex, "$1")) || null;
-  }
-};
-
 function get_host(win) {
   return win.location.protocol + "//" + win.location.hostname;
 }
@@ -57,10 +46,17 @@ crossCookie.prototype.setup_iframe = function () {
   iframe.src = this.o.serverUrl;
   return iframe;
 };
+
+crossCookie.prototype.get_local_cookie = function(sKey) {
+  var regex = new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$");
+  return decodeURIComponent(document.cookie.replace(regex, "$1")) || null;
+}
+
 crossCookie.prototype.set_local_cookie = function(sKey,sVal) {
-  if (sVal != get_cookie(sKey)) {
-    set_cookie(sKey,sVal);
+  if (sVal != this.get_local_cookie(sKey)) {
+    document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sVal);
   }
+  return sVal;
 }
 
 crossCookie.prototype.get = function(sKey,callback) {
@@ -97,7 +93,7 @@ crossCookie.prototype.onMessage = function (event,_self) {
     if (_self.is_protected(msg.CCget)) {
       var cookie = "!protected"
     } else {
-      var cookie = get_cookie(msg.CCget);
+      var cookie = _self.get_cookie(msg.CCget);
     };
     _self.send({"CCresponse":[msg.CCget,cookie]});
   } else if (msg.CCset_cookie) {
@@ -108,12 +104,13 @@ crossCookie.prototype.onMessage = function (event,_self) {
       var cookie = msg.CCset_cookie[1];
       _self.set_local_cookie(sKey,cookie);
     };
-    _self.send({"CCresponse":[sKey,cookie]});
+    // _self.send({"CCresponse":[sKey,cookie]});
+    _self.o.on_cookie(sKey,cookie)
   } else if (msg.CCresponse) {
     console.log("recebeu cookie")
     _self.o.on_cookie(msg.CCresponse[0],msg.CCresponse[1])
   } else {
-    set_cookie(msg);
+    _self.set_local_cookie(msg);
   };
 };
 
