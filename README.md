@@ -1,6 +1,4 @@
-<img src="./interphone.png" ALIGN="center" width="200px">
-![Logo](/test/interphone.png)
-
+<img src="./test/interphone.png" ALIGN="center" width="200px" style="margin: 0 auto;">
 
 Your cross site cookie rock star
 
