@@ -1,6 +1,6 @@
-<img src="./test/interphone.png" ALIGN="center" width="200px" style="margin: 0 auto;">
+<img src="./test/interphone.png" ALIGN="center" width="200px" style="float:right;">
 
-Your cross site cookie rock star
+Your cross domain intercom rock star.
 
 #Doc in progress
 
