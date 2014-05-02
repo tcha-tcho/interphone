@@ -1,23 +1,38 @@
 <html>
 <head>
-  <title>crossCookie testing</title>
+  <title>interphone testing</title>
   <meta charset="utf-8">
   <link rel="stylesheet" href="./qunit-git.css">
 </head>
 <body>
   <div id="qunit"></div>
   <script src="./qunit-git.js"></script>
-  <script src="../crossCookie.js"></script>
+  <script src="../interphone.js"></script>
   <script type="text/javascript">
-    var crosscookie = new crossCookie({
+    var page1 = new interphone({
       on_ready: function() {
         console.log("client ready")
-        // crosscookie.get("CCCookie");
+        // interphone.get("IPCookie");
+      }
+      ,on_msg: function(obj) {
+        console.log("on_msg from page1",JSON.stringigy(obj))
       }
       ,on_cookie: function(key,val) {
-        console.log("on_cookie",key,val);
+        console.log("on_cookie from page1",key,val);
       }
-      ,serverUrl: "./server.html"
+      ,serverUrl: "./page1.html"
+    });
+    var page2 = new interphone({
+      on_ready: function() {
+        console.log("client ready again")
+      }
+      ,on_msg: function(obj) {
+        console.log("on_msg from page2",JSON.stringigy(obj))
+      }
+      ,on_cookie: function(key,val) {
+        console.log("on_cookie from page2",key,val);
+      }
+      ,serverUrl: "./page2.html"
     });
   </script>
   <br>

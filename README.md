@@ -1,4 +1,6 @@
-# CrossCookie
+![Logo](/path/to/img.jpg)
+
+# Interphone.js
 Your cross site cookie rock star
 
 #Doc in progress
@@ -7,7 +9,7 @@ Your cross site cookie rock star
 ## Installation
 ###Client and Server
 ```html
-<script src="crossCookie.js" type="text/javascript"></script>
+<script src="interphone.js" type="text/javascript"></script>
 ```
 
 ## Usage
@@ -17,7 +19,7 @@ Get your blessed cookies everywhere.
 ```javascript
 //freaking easy!!!!
 ```
-And you can customize your **crosscookie** \o/
+And you can customize your **interphone** \o/
 
 ## Features
 
@@ -40,7 +42,7 @@ Yes we are watching you IE!
 To run the test suite just open the ***```test/test.html```*** file at your browser
 
 Or access:
-***```https://rawgit.com/tcha-tcho/crossCookie/master/test/test.html```***
+***```https://rawgit.com/tcha-tcho/interphone/master/test/test.html```***
 
 ## Credits
 

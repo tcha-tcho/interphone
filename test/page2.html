@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple interphone Hosted Page 2</title>
+  <script type="text/javascript" src="../interphone.js"></script>
+  <script type="text/javascript">
+    console.log("starting interphone Page2 connection")
+    var CCpage2 = new interphone({
+      on_ready: function(){
+        console.log("Page 2 is ready")
+        CCpage2.send_msg({msg:"hei"})
+      }
+      ,on_msg: function(obj) {
+        console.log("on_msg on Page2",JSON.stringify(obj))
+        CCpage2.send_msg({msg:"echoo"})
+      }
+      ,on_cookie: function(key,val){
+        console.log("on_cookie_server",key,val)
+      }
+    });
+  </script>
+</head>
+<body>
+
+</body>
+</html>
+
