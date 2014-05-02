@@ -1,6 +1,5 @@
-![Logo](/path/to/img.jpg)
+![Logo](/test/interphone.png)
 
-# Interphone.js
 Your cross site cookie rock star
 
 #Doc in progress
