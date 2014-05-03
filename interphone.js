@@ -8,6 +8,15 @@ if (!Object.extend) {
   }
 };
 
+if(!String.to_id) {
+  String.prototype.to_id = function() {
+    return this.replace(/[xy]/g, function(c) {
+      var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+      return v.toString(16);
+    });
+  };
+};
+
 function get_host(win) {
   return win.location.protocol + "//" + win.location.hostname;
 }
@@ -26,21 +35,17 @@ function interphone(config) {
   this.init(config);
 }
 
-var win = (win || window);
-
 interphone.prototype.send = function (obj) {
-  this.frame.postMessage(JSON.stringify(obj), "*");
+  this.frame.postMessage(JSON.stringify(obj), get_host(this.frame));
 }
 
 interphone.prototype.send_msg = function (obj) {
-  //messaging all
-  this.frame.postMessage('{"IPresponse_msg":'+JSON.stringify(obj)+'}', "*");
+  this.send({"IPresponse_msg":obj});
 }
 
 interphone.prototype.setup_iframe = function () {
   // Create hidden iframe dom element
-  var doc = win.document;
-  window.doc = doc
+  var doc = this.win.document;
   var iframe = doc.createElement('iframe');
   var iframeStyle = iframe.style;
   iframeStyle.position = 'absolute';
@@ -65,12 +70,12 @@ interphone.prototype.set_local_cookie = function(sKey,sVal) {
   return sVal;
 }
 
-interphone.prototype.get = function(sKey,callback) {
-  this.frame.postMessage('{"IPget":"'+sKey+'"}', "*");
-}
-
 interphone.prototype.is_protected = function(sKey) {
   return ((this.o.protected_cookies.indexOf(sKey) != -1) || this.o.no_calls);
+}
+
+interphone.prototype.get = function(sKey,callback) {
+  this.send({"IPget":sKey});
 }
 
 interphone.prototype.set = function(sKey,sVal) {
@@ -86,9 +91,10 @@ interphone.prototype.onMessage = function (event,_self) {
     if (_self.o.allowed_hosts.indexOf(get_host(_self.frame)) == -1) return;
   };
   if (!event.data) return;
-  console.log(event.data)
+  if (event.source.uuid != _self.frame.uuid) return;
   var msg = JSON.parse(event.data);
   if(!msg) return;
+
   if (msg.IPim_ready) {
     _self.is_ready = true;
     _self.o.on_ready();
@@ -116,6 +122,7 @@ interphone.prototype.onMessage = function (event,_self) {
   } else {
     _self.set_local_cookie(msg);
   };
+
 };
 
 interphone.prototype.init = function (config) {
@@ -123,26 +130,28 @@ interphone.prototype.init = function (config) {
   this.o = _self.extend(_self.defaults, config);
   delete this.defaults;
 
-  if(!win.postMessage || !win.JSON ) return;
+  _self.win = window;
 
-  if (!_self.frame) {
-    _self.frame = (win.top == win) ? _self.setup_iframe().contentWindow : win.top;
-  };
+  if(!_self.win.postMessage || !_self.win.JSON ) return;
+  _self.is_iframe = (_self.win.top == _self.win);
+  _self.frame = _self.is_iframe ? _self.setup_iframe().contentWindow : _self.win.top;
+  _self.frame.uuid = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
+  if (!_self.win.uuid) _self.win.uuid = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
 
   // Setup postMessage event listeners
-  if (win.addEventListener) {
-    win.addEventListener('message', function(event){
+  if (_self.win.addEventListener) {
+    _self.win.addEventListener('message', function(event){
       _self.onMessage(event,_self)
     }, false);
-  } else if(win.attachEvent) {
-    win.attachEvent('onmessage', function(event){
+  } else if(_self.win.attachEvent) {
+    _self.win.attachEvent('onmessage', function(event){
       _self.onMessage(event,_self)
     });
   }
 
-  _self.interval = window.setInterval(function(){
+  _self.interval = _self.win.setInterval(function(){
     if (_self.is_ready) {
-      window.clearInterval(_self.interval);
+      _self.win.clearInterval(_self.interval);
     } else {
       _self.send({IPare_you_ready:true}); //?
     };
