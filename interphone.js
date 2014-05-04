@@ -35,12 +35,15 @@ function interphone(config) {
   this.init(config);
 }
 
-interphone.prototype.send = function (obj) {
-  this.frame.postMessage(JSON.stringify(obj), get_host(this.frame));
+interphone.prototype.send = function (key,val) {
+  var obj = {};
+  obj[this.win.uuid + ":::" + key] = val;
+  // this.frame.postMessage(JSON.stringify(obj), get_host(this.frame));
+  this.frame.postMessage(JSON.stringify(obj), "*");
 }
 
 interphone.prototype.send_msg = function (obj) {
-  this.send({"IPresponse_msg":obj});
+  this.send("IPresponse_msg", obj);
 }
 
 interphone.prototype.setup_iframe = function () {
@@ -75,13 +78,13 @@ interphone.prototype.is_protected = function(sKey) {
 }
 
 interphone.prototype.get = function(sKey,callback) {
-  this.send({"IPget":sKey});
+  this.send("IPget", sKey);
 }
 
 interphone.prototype.set = function(sKey,sVal) {
   this.set_local_cookie(sKey,sVal);
   if (!this.is_protected(sKey)) {
-    this.send({IPset_cookie:[sKey,sVal]});
+    this.send("IPset_cookie", [sKey,sVal]);
   };
 }
 
@@ -90,40 +93,88 @@ interphone.prototype.onMessage = function (event,_self) {
     if (event.origin != get_host(_self.frame)) return;
     if (_self.o.allowed_hosts.indexOf(get_host(_self.frame)) == -1) return;
   };
-  if (!event.data) return;
-  if (event.source.uuid != _self.frame.uuid) return;
-  var msg = JSON.parse(event.data);
-  if(!msg) return;
+  // if (!event.newValue && !event.data) return;
+  if (event.type == "storage") {
+    var msg = {};
+    msg[event.key] = event.newValue
+    // console.log("--------------------")
+    // console.log(event)
+    // console.log(_self.frame.uuid)
+    // console.log(event.srcElement.uuid)
+    // console.log(event.target.uuid)
+    // console.log(event.currentTarget.uuid)
+    // console.log("--------------------")
+  } else if (event.type == "message") {
+    var msg = JSON.parse(event.data);
+    // if (!_self.is_iframe) console.log(event.source.uuid)
+    // if (_self.is_iframe) console.log(event.source.uuid)
+  };
 
-  if (msg.IPim_ready) {
+  for (key in msg) {
+    if (key != "extend") {
+      var uuid = key.split(":::")[0];
+      msg[key.split(":::")[1]] = msg[key];
+      delete msg[key];
+    };
+  }
+
+  if (uuid != _self.frame_uuid && !msg.IPare_you_ready) {
+    // console.log("negada",uuid, _self.frame_uuid, JSON.stringify(msg))
+    return;
+  } else {
+    // console.log("aprovada",uuid, _self.frame_uuid, JSON.stringify(msg))
+  };
+
+  switch(true) {
+  case !!msg.IPim_ready:
     _self.is_ready = true;
     _self.o.on_ready();
-  } else if (msg.IPare_you_ready) { //?
-    _self.send({"IPim_ready":true});
-  } else if (msg.IPget) {
+    break;
+  case !!msg.IPare_you_ready:
+    _self.frame_uuid = uuid;
+    _self.send("IPim_ready", true);
+    break;
+  case !!msg.IPget:
     if (_self.is_protected(msg.IPget)) {
       var cookie = "!protected"
     } else {
       var cookie = _self.get_cookie(msg.IPget);
     };
-    _self.send({"IPresponse":[msg.IPget,cookie]});
-  } else if (msg.IPset_cookie) {
+    _self.send("IPresponse", [msg.IPget,cookie]);
+    break;
+  case !!msg.IPset_cookie:
     var sKey = msg.IPset_cookie[0];
     if (_self.is_protected(sKey)) {
-      _self.send({"IPresponse":[sKey,"!protected"]});
+      _self.send("IPresponse", [sKey,"!protected"]);
     } else {
       _self.set_local_cookie(sKey,msg.IPset_cookie[1]);
       _self.o.on_cookie(sKey,msg.IPset_cookie[1])
     };
-  } else if (msg.IPresponse) {
+    break;
+  case !!msg.IPresponse:
     _self.o.on_cookie(msg.IPresponse[0],msg.IPresponse[1])
-  } else if (msg.IPresponse_msg) {
+    break;
+  case !!msg.IPresponse_msg:
     _self.o.on_msg(msg.IPresponse_msg)
-  } else {
+    break;
+  default:
     _self.set_local_cookie(msg);
-  };
+  }
 
 };
+
+interphone.prototype.set_listeners = function(type) {
+  var _self = this;
+  if (_self.win.addEventListener) {
+    _self.win.addEventListener(type, function(event){
+      _self.onMessage(event,_self)
+    }, false);
+  } else if(_self.win.attachEvent) {
+    _self.win.attachEvent('on'+type, function(event){
+      _self.onMessage(event,_self)
+    });
+  }
+}
 
 interphone.prototype.init = function (config) {
   var _self = this;
@@ -132,29 +183,26 @@ interphone.prototype.init = function (config) {
 
   _self.win = window;
 
-  if(!_self.win.postMessage || !_self.win.JSON ) return;
+  if (!_self.win.postMessage || !_self.win.JSON ) return;
   _self.is_iframe = (_self.win.top == _self.win);
   _self.frame = _self.is_iframe ? _self.setup_iframe().contentWindow : _self.win.top;
-  _self.frame.uuid = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
-  if (!_self.win.uuid) _self.win.uuid = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
-
-  // Setup postMessage event listeners
-  if (_self.win.addEventListener) {
-    _self.win.addEventListener('message', function(event){
-      _self.onMessage(event,_self)
-    }, false);
-  } else if(_self.win.attachEvent) {
-    _self.win.attachEvent('onmessage', function(event){
-      _self.onMessage(event,_self)
-    });
+  if (_self.is_iframe) {
+    _self.frame_uuid = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
+    _self.frame.uuid = _self.frame_uuid;
+  } else {
+    _self.win.uuid = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
   }
+
+  // Setup event listeners
+  _self.set_listeners('message');
+  _self.set_listeners('storage');
 
   _self.interval = _self.win.setInterval(function(){
     if (_self.is_ready) {
       _self.win.clearInterval(_self.interval);
     } else {
-      _self.send({IPare_you_ready:true}); //?
+      _self.send("IPare_you_ready", true); //?
     };
-  },300);
+  },200);
 
 };
