@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Simple interphone Hosted Page 2</title>
+  <meta charset="utf-8">
   <script type="text/javascript" src="../interphone.js"></script>
   <script type="text/javascript">
     console.log("starting interphone Page2 connection")
@@ -10,6 +11,7 @@
         console.log("Page 2 is ready")
         CCpage2.send_msg({msg:"hei"})
       }
+      ,me: "ccp2"
       ,on_msg: function(obj) {
         console.log("on_msg on Page2",JSON.stringify(obj))
         CCpage2.send_msg({msg:"echoo"})

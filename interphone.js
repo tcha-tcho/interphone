@@ -17,6 +17,33 @@ if(!String.to_id) {
   };
 };
 
+if(!String.encrypt) {
+  function xor(char, key) {
+    return String.fromCharCode(char ^ key)
+  }
+  String.prototype.encrypt = function(key) {
+    var klen = key.length;
+    var plaintext = this;
+    var ciphertext = '';
+    var len = plaintext.length;
+    for (var i = 0; i < len; i++) {
+      ciphertext += xor(plaintext.charCodeAt(i), (i%klen))
+    }
+    return ciphertext;
+  };
+  String.prototype.decrypt = function(key) {
+    var ciphertext = this
+    , klen = key.length
+    , plaintext = ''
+    , key = key.split('')
+    , len = ciphertext.length;
+    for (var i = 0; i < len; i++) {
+      plaintext += xor(ciphertext.charCodeAt(i), (i%klen))
+    }
+    return plaintext;
+  }
+};
+
 function get_host(win) {
   return win.location.protocol + "//" + win.location.hostname;
 }
@@ -27,6 +54,7 @@ function interphone(config) {
     ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
     ,protected_cookies: []
     ,no_calls: false
+    ,me: 0
     ,on_ready: function(){}
     ,on_cookie: function(){}
     ,on_storage: function(){}
@@ -36,10 +64,8 @@ function interphone(config) {
 }
 
 interphone.prototype.send = function (key,val) {
-  var obj = {};
-  obj[this.win.uuid + ":::" + key] = val;
-  // this.frame.postMessage(JSON.stringify(obj), get_host(this.frame));
-  this.frame.postMessage(JSON.stringify(obj), "*");
+  var obj = {}; obj[key] = val;
+  this.frame.postMessage(this.uuid + ":::" + JSON.stringify(obj), "*");
 }
 
 interphone.prototype.send_msg = function (obj) {
@@ -47,17 +73,18 @@ interphone.prototype.send_msg = function (obj) {
 }
 
 interphone.prototype.setup_iframe = function () {
-  // Create hidden iframe dom element
-  var doc = this.win.document;
-  var iframe = doc.createElement('iframe');
-  var iframeStyle = iframe.style;
+  var _self = this;
+  var doc = _self.win.document;
+  _self.iframe = doc.createElement('iframe');
+  _self.iframe.name = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id(); //iframe uuid
+  _self.iframe.id = _self.uuid; //page uuid
+  var iframeStyle = _self.iframe.style;
   iframeStyle.position = 'absolute';
   iframeStyle.left = iframeStyle.top = '-999px';
 
-  // Append iframe to the dom and load up interphone.org inside
-  doc.head.appendChild(iframe);
-  iframe.src = this.o.serverUrl;
-  return iframe;
+  doc.head.appendChild(_self.iframe);
+  _self.iframe.src = this.o.serverUrl;
+  return _self.iframe;
 };
 
 interphone.prototype.get_local_cookie = function(sKey) {
@@ -97,32 +124,21 @@ interphone.prototype.onMessage = function (event,_self) {
   if (event.type == "storage") {
     var msg = {};
     msg[event.key] = event.newValue
-    // console.log("--------------------")
-    // console.log(event)
-    // console.log(_self.frame.uuid)
-    // console.log(event.srcElement.uuid)
-    // console.log(event.target.uuid)
-    // console.log(event.currentTarget.uuid)
-    // console.log("--------------------")
   } else if (event.type == "message") {
-    var msg = JSON.parse(event.data);
-    // if (!_self.is_iframe) console.log(event.source.uuid)
-    // if (_self.is_iframe) console.log(event.source.uuid)
+    var uuid = event.data.split(":::")[0];
+    var blob = event.data.split(":::")[1];
+    var msg = JSON.parse(blob);
   };
 
-  for (key in msg) {
-    if (key != "extend") {
-      var uuid = key.split(":::")[0];
-      msg[key.split(":::")[1]] = msg[key];
-      delete msg[key];
-    };
-  }
+  var source = document.getElementsByName(uuid)[0]
+  if (source) source = source.id; // O ID é o iframe
+  console.log("-----",source,_self.uuid,uuid);
 
-  if (uuid != _self.frame_uuid && !msg.IPare_you_ready) {
-    // console.log("negada",uuid, _self.frame_uuid, JSON.stringify(msg))
-    return;
+  if (_self.uuid != source && !msg.IPare_you_ready) {
+    console.log("negada", JSON.stringify(msg))
+    // return;
   } else {
-    // console.log("aprovada",uuid, _self.frame_uuid, JSON.stringify(msg))
+    console.log("aprovada", JSON.stringify(msg))
   };
 
   switch(true) {
@@ -184,16 +200,16 @@ interphone.prototype.init = function (config) {
   _self.win = window;
 
   if (!_self.win.postMessage || !_self.win.JSON ) return;
-  _self.is_iframe = (_self.win.top == _self.win);
-  _self.frame = _self.is_iframe ? _self.setup_iframe().contentWindow : _self.win.top;
+  _self.is_iframe = (_self.win.top != _self.win);
   if (_self.is_iframe) {
-    _self.frame_uuid = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
-    _self.frame.uuid = _self.frame_uuid;
+    _self.uuid = _self.win.name;
   } else {
-    _self.win.uuid = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
-  }
+    _self.uuid = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
+    _self.win.name = _self.uuid;
+  };
+  _self.frame = _self.is_iframe ? _self.win.top : _self.setup_iframe().contentWindow;
 
-  // Setup event listeners
+
   _self.set_listeners('message');
   _self.set_listeners('storage');
 
