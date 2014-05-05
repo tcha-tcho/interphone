@@ -76,8 +76,8 @@ interphone.prototype.setup_iframe = function () {
   var _self = this;
   var doc = _self.win.document;
   _self.iframe = doc.createElement('iframe');
-  _self.iframe.name = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id(); //iframe uuid
-  _self.iframe.id = _self.uuid; //page uuid
+  _self.iframe.name = _self.uuid;
+  _self.iframe.id = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
   var iframeStyle = _self.iframe.style;
   iframeStyle.position = 'absolute';
   iframeStyle.left = iframeStyle.top = '-999px';
@@ -190,7 +190,7 @@ interphone.prototype.set_listeners = function(type) {
       _self.onMessage(event,_self)
     });
   }
-}
+};
 
 interphone.prototype.init = function (config) {
   var _self = this;
