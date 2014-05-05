@@ -15,12 +15,12 @@
         console.log("client ready")
         // interphone.get("IPCookie");
       }
-      ,me: "p1"
       ,on_msg: function(obj) {
-        // console.log("on_msg from page1",JSON.stringigy(obj))
+        console.log("on_msg from page1",JSON.stringigy(obj))
       }
       ,on_cookie: function(key,val) {
         console.log("on_cookie from page1",key,val);
+        page1.set("bla","nonono")
       }
       ,serverUrl: "./page1.html"
     });
@@ -28,9 +28,8 @@
       on_ready: function() {
         console.log("client ready again")
       }
-      ,me: "p2"
       ,on_msg: function(obj) {
-        // console.log("on_msg from page2",JSON.stringigy(obj))
+        console.log("on_msg from page2")
       }
       ,on_cookie: function(key,val) {
         console.log("on_cookie from page2",key,val);

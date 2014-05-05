@@ -54,7 +54,7 @@ function interphone(config) {
     ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
     ,protected_cookies: []
     ,no_calls: false
-    ,me: 0
+    ,transport: "message" // || "storage"
     ,on_ready: function(){}
     ,on_cookie: function(){}
     ,on_storage: function(){}
@@ -65,7 +65,8 @@ function interphone(config) {
 
 interphone.prototype.send = function (key,val) {
   var obj = {}; obj[key] = val;
-  this.frame.postMessage(this.uuid + ":::" + JSON.stringify(obj), "*");
+  var encrypted = JSON.stringify(obj).encrypt(this.pair+this.uuid);
+  this.frame.postMessage(this.uuid + ":::" + encrypted, "*");
 }
 
 interphone.prototype.send_msg = function (obj) {
@@ -76,8 +77,7 @@ interphone.prototype.setup_iframe = function () {
   var _self = this;
   var doc = _self.win.document;
   _self.iframe = doc.createElement('iframe');
-  _self.iframe.name = _self.uuid;
-  _self.iframe.id = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
+  _self.iframe.name = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id() + "|||" + _self.uuid;
   var iframeStyle = _self.iframe.style;
   iframeStyle.position = 'absolute';
   iframeStyle.left = iframeStyle.top = '-999px';
@@ -127,18 +127,16 @@ interphone.prototype.onMessage = function (event,_self) {
   } else if (event.type == "message") {
     var uuid = event.data.split(":::")[0];
     var blob = event.data.split(":::")[1];
+    console.log("--",event.data)
+    blob = blob.decrypt(_self.pair+_self.uuid);
+    console.log(" L",blob)
     var msg = JSON.parse(blob);
   };
 
-  var source = document.getElementsByName(uuid)[0]
-  if (source) source = source.id; // O ID é o iframe
-  console.log("-----",source,_self.uuid,uuid);
-
-  if (_self.uuid != source && !msg.IPare_you_ready) {
-    console.log("negada", JSON.stringify(msg))
-    // return;
-  } else {
-    console.log("aprovada", JSON.stringify(msg))
+  if (uuid != _self.pair &&
+      !msg.IPare_you_ready &&
+      !msg.IPim_ready) {
+    return;
   };
 
   switch(true) {
@@ -202,13 +200,16 @@ interphone.prototype.init = function (config) {
   if (!_self.win.postMessage || !_self.win.JSON ) return;
   _self.is_iframe = (_self.win.top != _self.win);
   if (_self.is_iframe) {
-    _self.uuid = _self.win.name;
+    var both = _self.win.name.split("|||");
+    _self.uuid = both[0];
+    _self.pair = both[1];
   } else {
     _self.uuid = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id();
-    _self.win.name = _self.uuid;
   };
   _self.frame = _self.is_iframe ? _self.win.top : _self.setup_iframe().contentWindow;
-
+  if (!_self.is_iframe) {
+    _self.pair = _self.iframe.name.split("|||")[0];
+  }
 
   _self.set_listeners('message');
   _self.set_listeners('storage');
