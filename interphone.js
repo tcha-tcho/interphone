@@ -35,7 +35,7 @@ function get_host(win) {
 function interphone(config) {
   this.defaults = {
      allowed_hosts: "*"
-    ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
+    ,serverUrl: ""
     ,protected_data: []
     ,no_calls: false
     ,on_ready: function(){}
