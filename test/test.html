@@ -16,11 +16,11 @@
         // interphone.get("IPCookie");
       }
       ,on_msg: function(obj) {
-        console.log("on_msg from page1",JSON.stringigy(obj))
+        console.log("on_msg from page1",obj)
       }
-      ,on_cookie: function(key,val) {
-        console.log("on_cookie from page1",key,val);
-        page1.set("bla","nonono")
+      ,on_data: function(key,val,type) {
+        console.log("on_data from page1",key,val,type);
+        // page1.set_data("bla","nonono","cookie")
       }
       ,serverUrl: "./page1.html"
     });
@@ -29,10 +29,10 @@
         console.log("client ready again")
       }
       ,on_msg: function(obj) {
-        console.log("on_msg from page2")
+        console.log("on_msg from page2",obj)
       }
-      ,on_cookie: function(key,val) {
-        console.log("on_cookie from page2",key,val);
+      ,on_data: function(key,val) {
+        console.log("on_data from page2",key,val);
       }
       ,serverUrl: "./page2.html"
     });

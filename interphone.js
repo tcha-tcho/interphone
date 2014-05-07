@@ -17,31 +17,15 @@ if(!String.to_id) {
   };
 };
 
-if(!String.encrypt) {
-  function xor(char, key) {
-    return String.fromCharCode(char ^ key)
-  }
-  String.prototype.encrypt = function(key) {
-    var klen = key.length;
-    var plaintext = this;
-    var ciphertext = '';
-    var len = plaintext.length;
-    for (var i = 0; i < len; i++) {
-      ciphertext += xor(plaintext.charCodeAt(i), (i%klen))
-    }
-    return ciphertext;
+if(!String.crypt) {
+  String.prototype.crypt = function(key) {
+    var new_text = '';
+    for (var i = 0; i < this.length; i++) {
+      var k = key.charCodeAt(i%key.length);
+      new_text += String.fromCharCode(this.charCodeAt(i) ^ k);
+    };
+    return new_text;
   };
-  String.prototype.decrypt = function(key) {
-    var ciphertext = this
-    , klen = key.length
-    , plaintext = ''
-    , key = key.split('')
-    , len = ciphertext.length;
-    for (var i = 0; i < len; i++) {
-      plaintext += xor(ciphertext.charCodeAt(i), (i%klen))
-    }
-    return plaintext;
-  }
 };
 
 function get_host(win) {
@@ -52,21 +36,26 @@ function interphone(config) {
   this.defaults = {
      allowed_hosts: "*"
     ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
-    ,protected_cookies: []
+    ,protected_data: []
     ,no_calls: false
-    ,transport: "message" // || "storage"
     ,on_ready: function(){}
-    ,on_cookie: function(){}
+    ,on_data: function(){}
     ,on_storage: function(){}
     ,on_msg: function(){}
   }
   this.init(config);
 }
 
+interphone.prototype.is_protected = function(sKey) {
+  return ((this.o.protected_data.indexOf(sKey) != -1) || this.o.no_calls);
+}
+
 interphone.prototype.send = function (key,val) {
+  var _self = this;
+  if (_self.is_protected(key)) val = "protected!";
   var obj = {}; obj[key] = val;
-  var encrypted = JSON.stringify(obj).encrypt(this.pair+this.uuid);
-  this.frame.postMessage(this.uuid + ":::" + encrypted, "*");
+  var encrypted = JSON.stringify(obj).crypt(_self.pair+_self.uuid);
+  _self.frame.postMessage(_self.uuid + "--" + encrypted, "*");
 }
 
 interphone.prototype.send_msg = function (obj) {
@@ -77,7 +66,7 @@ interphone.prototype.setup_iframe = function () {
   var _self = this;
   var doc = _self.win.document;
   _self.iframe = doc.createElement('iframe');
-  _self.iframe.name = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id() + "|||" + _self.uuid;
+  _self.iframe.name = 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxx'.to_id() + "--" + _self.uuid;
   var iframeStyle = _self.iframe.style;
   iframeStyle.position = 'absolute';
   iframeStyle.left = iframeStyle.top = '-999px';
@@ -100,44 +89,46 @@ interphone.prototype.set_local_cookie = function(sKey,sVal) {
   return sVal;
 }
 
-interphone.prototype.is_protected = function(sKey) {
-  return ((this.o.protected_cookies.indexOf(sKey) != -1) || this.o.no_calls);
+interphone.prototype.get_local_storage = function(sKey) {
+  if (this.storage) return this.storage.getItem(sKey);
+  return "!localStorage"
 }
 
-interphone.prototype.get = function(sKey,callback) {
-  this.send("IPget", sKey);
+interphone.prototype.set_local_storage = function(sKey,sVal) {
+  if (this.storage) this.storage.setItem(sKey,sVal);
+  return sVal;
 }
 
-interphone.prototype.set = function(sKey,sVal) {
-  this.set_local_cookie(sKey,sVal);
-  if (!this.is_protected(sKey)) {
-    this.send("IPset_cookie", [sKey,sVal]);
+interphone.prototype.get_data = function(sKey,type) {
+  if (!type) type = "storage";
+  this.send("IPget_data", [sKey,type]);
+}
+
+interphone.prototype.set_data = function(sKey,sVal,type) {
+  var _self = this;
+  if (type=="cookie") {
+    _self.set_local_cookie(sKey,sVal);
+  } else {
+    if (!type) type = "storage";
+    if (_self.storage) _self.storage.setItem(sKey,sVal)
   };
-}
+  if (!this.is_protected(sKey)) {
+    this.send("IPset_data", [sKey,sVal,type]);
+  };
+};
 
 interphone.prototype.onMessage = function (event,_self) {
+  if (!event) { event = window.event; } //IE
   if (_self.o.allowed_hosts != "*") {
     if (event.origin != get_host(_self.frame)) return;
     if (_self.o.allowed_hosts.indexOf(get_host(_self.frame)) == -1) return;
   };
-  // if (!event.newValue && !event.data) return;
-  if (event.type == "storage") {
-    var msg = {};
-    msg[event.key] = event.newValue
-  } else if (event.type == "message") {
-    var uuid = event.data.split(":::")[0];
-    var blob = event.data.split(":::")[1];
-    console.log("--",event.data)
-    blob = blob.decrypt(_self.pair+_self.uuid);
-    console.log(" L",blob)
-    var msg = JSON.parse(blob);
-  };
-
-  if (uuid != _self.pair &&
-      !msg.IPare_you_ready &&
-      !msg.IPim_ready) {
-    return;
-  };
+  if (!event.data) return;
+  var uuid = event.data.split("--")[0];
+  var blob = event.data.split("--")[1];
+  if (uuid != _self.pair) return;
+  blob = blob.crypt(_self.uuid+_self.pair);
+  var msg = JSON.parse(blob);
 
   switch(true) {
   case !!msg.IPim_ready:
@@ -148,31 +139,28 @@ interphone.prototype.onMessage = function (event,_self) {
     _self.frame_uuid = uuid;
     _self.send("IPim_ready", true);
     break;
-  case !!msg.IPget:
-    if (_self.is_protected(msg.IPget)) {
-      var cookie = "!protected"
-    } else {
-      var cookie = _self.get_cookie(msg.IPget);
-    };
-    _self.send("IPresponse", [msg.IPget,cookie]);
+  case !!msg.IPget_data:
+    var k = msg.IPget_data; //0-sKey,1-type
+    _self.send("IPresponse", [k[0],_self["get_local_"+k[1]](k[0])],k[1]);
     break;
-  case !!msg.IPset_cookie:
-    var sKey = msg.IPset_cookie[0];
-    if (_self.is_protected(sKey)) {
-      _self.send("IPresponse", [sKey,"!protected"]);
+  case !!msg.IPset_data:
+    var k = msg.IPset_data; //0-sKey,1-sVal,2-type
+    if (_self.is_protected(k[0])) {
+      _self.send("IPresponse", [k[0],"protected!",k[2]]);
     } else {
-      _self.set_local_cookie(sKey,msg.IPset_cookie[1]);
-      _self.o.on_cookie(sKey,msg.IPset_cookie[1])
+      _self["set_local_"+k[2]](k[0],k[1]);
+      _self.o.on_data(k[0],k[1])
     };
     break;
   case !!msg.IPresponse:
-    _self.o.on_cookie(msg.IPresponse[0],msg.IPresponse[1])
+    var k = msg.IPresponse
+    _self.o.on_data(k[0],k[1],k[2])
     break;
   case !!msg.IPresponse_msg:
     _self.o.on_msg(msg.IPresponse_msg)
     break;
   default:
-    _self.set_local_cookie(msg);
+    _self.o.on_msg(msg);
   }
 
 };
@@ -196,11 +184,12 @@ interphone.prototype.init = function (config) {
   delete this.defaults;
 
   _self.win = window;
+  _self.storage = _self.win.localStorage;
 
   if (!_self.win.postMessage || !_self.win.JSON ) return;
   _self.is_iframe = (_self.win.top != _self.win);
   if (_self.is_iframe) {
-    var both = _self.win.name.split("|||");
+    var both = _self.win.name.split("--");
     _self.uuid = both[0];
     _self.pair = both[1];
   } else {
@@ -208,11 +197,10 @@ interphone.prototype.init = function (config) {
   };
   _self.frame = _self.is_iframe ? _self.win.top : _self.setup_iframe().contentWindow;
   if (!_self.is_iframe) {
-    _self.pair = _self.iframe.name.split("|||")[0];
+    _self.pair = _self.iframe.name.split("--")[0];
   }
 
   _self.set_listeners('message');
-  _self.set_listeners('storage');
 
   _self.interval = _self.win.setInterval(function(){
     if (_self.is_ready) {

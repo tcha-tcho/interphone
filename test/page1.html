@@ -9,17 +9,16 @@
     var CCpage1 = new interphone({
       on_ready: function(){
         console.log("Page 1 is ready")
-        CCpage1.set("IPCookie","This is awesome!");
-        CCpage1.set("IPCookie_protected","You don't gonna have this ever!");
+        CCpage1.set_data("IPCookie","This is awesome!","cookie");
+        CCpage1.set_data("IPCookie_protected","You don't gonna have this ever!","cookie");
       }
-      ,me: "ccp1"
-      ,on_cookie: function(key,val){
-        console.log("on_cookie_server",key,val)
+      ,on_data: function(key,val){
+        console.log("on_data_server",key,val)
       }
       ,on_msg: function(obj) {
         console.log("on_msg on Page1",JSON.stringify(obj))
       }
-      ,protected_cookies: ["IPCookie_protected"]
+      ,protected_data: ["IPCookie_protected"]
     });
   </script>
 </head>

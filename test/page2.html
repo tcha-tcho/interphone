@@ -11,13 +11,12 @@
         console.log("Page 2 is ready")
         CCpage2.send_msg({msg:"hei"})
       }
-      ,me: "ccp2"
       ,on_msg: function(obj) {
-        console.log("on_msg on Page2",JSON.stringify(obj))
+        console.log("on_msg on Page2",obj)
         CCpage2.send_msg({msg:"echoo"})
       }
-      ,on_cookie: function(key,val){
-        console.log("on_cookie_server",key,val)
+      ,on_data: function(key,val){
+        console.log("on_data_server",key,val)
       }
     });
   </script>
