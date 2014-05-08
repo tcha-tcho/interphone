@@ -51,7 +51,7 @@ interphone.prototype.send = function (key,val) {
   var _self = this;
   var obj = {}; obj[key] = val;
   var encrypted = JSON.stringify(obj).crypt(_self.pair+_self.uuid);
-  _self.frame.postMessage(_self.uuid + "--" + encrypted, _self.strict);
+  _self.frame.postMessage(_self.uuid + "--" + encrypted, _self.o.target);
 }
 
 interphone.prototype.send_msg = function (obj) {
