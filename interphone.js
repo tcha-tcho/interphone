@@ -1,5 +1,5 @@
-if (!Object.extend) {
-  Object.prototype.extend = function() {
+if (!window.extend) {
+  window.extend = function() {
     var a = arguments;
     for(var i=1; i<a.length; i++)
       for(var key in a[i])
@@ -30,7 +30,7 @@ if(!String.crypt) {
 };
 
 function interphone(config) {
-  this.o = this.extend({
+  this.o = window.extend({
      allowed_hosts: "*"
     ,serverUrl: ""
     ,lock_keys: []
@@ -48,7 +48,7 @@ interphone.prototype.locked = function(sKey) {
 
 interphone.prototype.send = function (key,val) {
   var _self = this;
-  if (_self.locked(key)) val = "protected!";
+  if (_self.locked(val[0])) val = "protected!";
   var obj = {}; obj[key] = val;
   var encrypted = JSON.stringify(obj).crypt(_self.pair+_self.uuid);
   _self.frame.postMessage(_self.uuid + "--" + encrypted, "*");
@@ -126,12 +126,12 @@ interphone.prototype.onMessage = function (event,_self) {
     break;
   case !!msg.IPget_dt:
     var k = msg.IPget_dt; //0-sKey,1-type
-    _self.send("IPres", [k[0],_self.get_local(k[1],k[0])],k[1]);
+    _self.send("IPres", [k[0], _self.get_local(k[1], k[0])], k[1]);
     break;
   case !!msg.IPset_dt:
     var k = msg.IPset_dt; //0-sKey,1-sVal,2-type
     if (_self.locked(k[0])) {
-      _self.send("IPres", [k[0],"protected!",k[2]]);
+      _self.send("IPres", [k[0], "protected!", k[2]]);
     } else {
       _self.set_local(k[2],k[0],k[1]);
       _self.o.on_data(k[0],k[1])
@@ -139,6 +139,7 @@ interphone.prototype.onMessage = function (event,_self) {
     break;
   case !!msg.IPres:
     var k = msg.IPres
+    console.log(k[0],k[1],k[2])
     _self.o.on_data(k[0],k[1],k[2])
     break;
   case !!msg.IPres_msg:

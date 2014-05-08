@@ -15,6 +15,7 @@
         console.log("on_msg on Page2",obj)
         CCpage2.send_msg({msg:"echoo"})
       }
+      ,me: "page2"
       ,on_data: function(key,val){
         console.log("on_data_server",key,val)
       }
