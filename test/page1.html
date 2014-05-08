@@ -5,20 +5,26 @@
   <meta charset="utf-8">
   <script src="../interphone.js" charset="UTF-8"></script>
   <script type="text/javascript">
-    console.log("starting interphone Page1 connection")
     var CCpage1 = new interphone({
       on_ready: function(){
-        console.log("Page 1 is ready")
         CCpage1.set_data("IPCookie","This is awesome!","cookie");
         CCpage1.set_data("IPCookie_protected","You don't gonna have this ever!","cookie");
       }
-      ,on_data: function(key,val){
-        console.log("on_data_server",key,val)
+      ,on_data: function(key,val,type){
+        if (type == "all" && key == "IPData_present") {
+          CCpage1.send_msg({
+            cookie: CCpage1.get_local("cookie","IPData"),
+            storage: CCpage1.get_local("storage","IPData")
+          });
+        };
       }
       ,on_msg: function(obj) {
-        console.log("on_msg on Page1",JSON.stringify(obj))
       }
-      ,lock_keys: ["IPCookie_protected"]
+      ,lock_keys: [
+        "IPCookie_protected"
+        ,"IPStorage_protected"
+        ,"IPData_protected"
+      ]
     });
   </script>
 </head>

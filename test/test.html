@@ -10,38 +10,156 @@
   <script src="./qunit-git.js"></script>
   <script src="../interphone.js" charset="UTF-8"></script>
   <script type="text/javascript">
-    var page1 = new interphone({
-      on_ready: function() {
-        console.log("client ready")
-        // interphone.get("IPCookie");
-      }
-      ,on_msg: function(obj) {
-        console.log("on_msg from page1",obj)
-      }
-      ,on_data: function(key,val,type) {
-        console.log("on_data from page1",key,val,type);
-        // page1.set_data("bla","nonono","cookie")
-      }
-      ,serverUrl: "./page1.html"
+
+    test( "Is present", function() {
+      ok( typeof interphone != "undefined", "Global is here!" );
     });
-    var page2 = new interphone({
-      on_ready: function() {
-        console.log("client ready again")
-      }
-      ,on_msg: function(obj) {
-        console.log("on_msg from page2",obj)
-      }
-      ,on_data: function(key,val) {
-        console.log("on_data from page2",key,val);
-      }
-      // ,serverUrl: "./page2.html"
-      ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page2.html"
-    });
+
+    test("Basic: window.extend",function(){
+      ok(typeof window.extend != "undefined","Extend is present")
+      var obj1 = {};
+      var obj2 = {"best":"test","ever":"!"}
+      var obj3 = {"is":"testing","all":"things"}
+      var obj4 = {"all":"codes"}
+      var obj5 = {
+        "num":123
+        ,"obj":{"hei":"weee"}
+        ,"bool":true
+        ,"arr":["x",2]
+        ,"func":function(x){return x}
+      };
+      var all = window.extend(obj1,obj2,obj3,obj4,obj5);
+      equal(all.all, "codes","replacing values")
+      equal(all.best, "test","maintaining old vals")
+      equal((all.num + 3), 126,"Number is a number")
+      equal(all.obj.hei, "weee","Object is a object")
+      equal(typeof all.bool, "boolean","Boolean is a boolean")
+      equal(all.arr[0], "x","Array value is correct")
+      equal(all.arr[1], 2,"Array number is correct")
+      equal(all.func("great!"), "great!","Function is working")
+    })
+
+    test("Basic: String.to_id",function(){
+      ok(typeof "".to_id != "undefined","String.to_id is present")
+      ok("xxxx-xxx".to_id() != "xxxx-xxx","ID is different of original template")
+      ok("1234-1234".to_id() == "1234-1234","ID is equal when hard coding values")
+      ok("xxx4-xxx4".to_id().substr(0,1) != "x","First letter is different...")
+      ok("xxx4-xxx4".to_id().substr(-1,1) == "4","... but the last one is equal")
+    })
+
+    test("Basic: String.crypt",function(){
+      ok(typeof "".crypt != "undefined","String.crypt is present")
+    })
+
+    asyncTest( "Page 1, getting a Cookie", function() {
+      expect( 4 );
+      var page1a = new interphone({
+        on_ready: function(me) {
+          ok(true,"Page 1 is ready to respond")
+          page1a.get_data("IPCookie_protected","cookie");
+        }
+        ,on_data: function(key,val,type) {
+          if (key == "IPCookie") {
+            ok(val == "This is awesome!", "Server create propagate a Cookie")
+            ok(page1a.get_local("cookie","IPCookie") == "This is awesome!", "Cookie is present on here")
+            start();
+          } else if (key == "IPCookie_protected") {
+            ok(val == "protected!", "Cookie_protected is protected")
+          };
+        }
+        ,serverUrl: "./page1.html"
+      });
+    })
+
+    asyncTest( "Page 1, setting and getting a Storage", function() {
+      expect( 4 );
+      var page1b = new interphone({
+        on_ready: function(me) {
+          ok(true,"Page 1 is ready to respond")
+          page1b.set_data("IPStorage","Storing!","storage");
+          page1b.set_data("IPStorage_protected","storage");
+          page1b.get_data("IPStorage")
+        }
+        ,on_data: function(key,val,type) {
+          var counter = 0;
+          if (key == "IPStorage") {
+            ok(val == "Storing!", "Client create and propagate a Storage on Server")
+            ok(page1b.get_local("storage","IPStorage") == "Storing!", "Storage data is present on here")
+            start();
+          } else if (key == "IPStorage_protected") {
+            ok(val == "protected!", "Storage_protected is protected")
+          };
+        }
+        ,serverUrl: "./page1.html"
+      });
+    })
+
+    asyncTest( "Page 1, setting and getting Storage and Cookie via 'all'", function() {
+      expect( 7 );
+      var counter = 0;
+      var page1b = new interphone({
+        on_ready: function(me) {
+          ok(true,"Page 1 is ready to respond")
+          page1b.set_data("IPData","Storing both!","all");
+          page1b.set_data("IPData_protected","all");
+          setTimeout(function(){
+            page1b.get_data("IPData")
+          },100)
+        }
+        ,on_data: function(key,val,type) {
+          counter ++;
+          if (key == "IPData") {
+            ok(type == "storage", "Storage is present on server so it uses that")
+            ok(val == "Storing both!", "Client create and propagate a Storage on Server")
+            ok(page1b.get_local("storage","IPData") == "Storing both!", "Local data is on storage")
+            ok(page1b.get_local("cookie","IPData") == "Storing both!", "Local data is on cookie")
+          } else if (key == "IPCookie") {
+            ok(val == "This is awesome!","Receiving data from server")
+          } else if (key == "IPData_protected") {
+            ok(val == "protected!", "Data_protected is protected")
+          };
+          if (counter > 2) {
+            start();
+          };
+        }
+        ,serverUrl: "./page1.html"
+      });
+    })
+
+    asyncTest( "Page 1, Asserting that set_data() realy is setting data on server", function() {
+      expect( 3 );
+      var counter = 0;
+      var page1b = new interphone({
+        on_ready: function(me) {
+          ok(true,"Page 1 is ready to respond")
+          page1b.set_data("IPData_present","Storing both!","all");
+          setTimeout(function(){
+            page1b.get_data("IPData_present")
+          },500)
+        }
+        ,on_msg: function(obj) {
+          ok(obj.cookie == "Storing both!","Cookie data is present on server")
+          ok(obj.storage == "Storing both!","Storage data is present on server")
+          start();
+        }
+        ,serverUrl: "./page1.html"
+      });
+    })
+
+    // var page2 = new interphone({
+    //   on_ready: function() {
+    //     console.log("client ready again")
+    //   }
+    //   ,on_msg: function(obj) {
+    //     console.log("on_msg from page2",obj)
+    //   }
+    //   ,on_data: function(key,val) {
+    //     console.log("on_data from page2",key,val);
+    //   }
+    //   // ,serverUrl: "./page2.html"
+    //   ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page2.html"
+    // });
   </script>
-  <br>
-  <br>
-  Your cookie is:
-  <div id="cookie returned"></div>
 
 </body>
 </html>
