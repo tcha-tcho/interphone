@@ -31,10 +31,11 @@ if(!String.crypt) {
 
 function interphone(config) {
   this.o = window.extend({
-     allowed_hosts: "*"
+     hosts: "*"
     ,serverUrl: ""
     ,lock_keys: []
     ,closed: false
+    ,target: "*"
     ,on_ready: function(){}
     ,on_data: function(){}
     ,on_msg: function(){}
@@ -48,10 +49,9 @@ interphone.prototype.locked = function(sKey) {
 
 interphone.prototype.send = function (key,val) {
   var _self = this;
-  if (_self.locked(val[0])) val = "protected!";
   var obj = {}; obj[key] = val;
   var encrypted = JSON.stringify(obj).crypt(_self.pair+_self.uuid);
-  _self.frame.postMessage(_self.uuid + "--" + encrypted, "*");
+  _self.frame.postMessage(_self.uuid + "--" + encrypted, _self.strict);
 }
 
 interphone.prototype.send_msg = function (obj) {
@@ -60,7 +60,7 @@ interphone.prototype.send_msg = function (obj) {
 
 interphone.prototype.new_iframe = function () {
   var _self = this;
-  var doc = _self.win.document;
+  var doc = _self.w.document;
   _self.iframe = doc.createElement('iframe');
   _self.iframe.name = 'xxxxxxx-xxxx-4xxx-yxxx'.to_id() + "--" + _self.uuid;
   var iframeStyle = _self.iframe.style;
@@ -73,43 +73,42 @@ interphone.prototype.new_iframe = function () {
 };
 
 interphone.prototype.get_local = function(type,sKey) {
-  if (type=="cookie") {
-    var regex = new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey)
-      .replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$");
-    return decodeURIComponent(document.cookie.replace(regex, "$1")) || null;
-  } else {
-    if (this.storage) return this.storage.getItem(sKey);
-    return "!localStorage"
-  };
+  var regex = new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey)
+    .replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$");
+  var cookie = decodeURIComponent(document.cookie.replace(regex, "$1")) || null;
+  var storage = (this.storage)?this.storage.getItem(sKey):"!storage";
+  if (type == "storage") return storage;
+  if (type == "cookie") return cookie;
+  if (type == "all") return (storage || cookie);
 }
 
-interphone.prototype.set_local = function(type,sKey,sVal) {
-  if (type=="cookie") {
+interphone.prototype.set_local = function(sKey,sVal,type) {
+  if (type=="cookie" || type=="all") {
     document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sVal);
-  } else {
+  };
+  if (type=="storage" || type=="all") {
     if (this.storage) this.storage.setItem(sKey,sVal);
   };
   return sVal;
 }
 
 interphone.prototype.get_data = function(sKey,type) {
-  if (!type) type = "storage";
-  this.send("IPget_dt", [sKey,type]);
+  this.send("IPget_dt", [sKey,(type || "storage")]);
 }
 
 interphone.prototype.set_data = function(sKey,sVal,type) {
-  if (!type) type = "storage";
-  this.set_local(type,sKey,sVal);
-  this.send("IPset_dt", [sKey,sVal,type]);
+  type = (type || "storage");
+  this.set_local(sKey,sVal,type);
+  if (!this.locked(sKey)) this.send("IPset_dt", [sKey,sVal,type]);
 };
 
 interphone.prototype.onMessage = function (event,_self) {
   if (!event) event = window.event; //IE
   var data = (event.data || "");
-  if (_self.o.allowed_hosts != "*") {
+  if (_self.o.hosts != "*") {
     var host = _self.frame.location.hostname
     if (event.origin != host) return;
-    if (_self.o.allowed_hosts.indexOf(host) == -1) return;
+    if (_self.o.hosts.indexOf(host) == -1) return;
   };
   var uuid = data.split("--")[0];
   if (uuid != _self.pair) return;
@@ -126,20 +125,20 @@ interphone.prototype.onMessage = function (event,_self) {
     break;
   case !!msg.IPget_dt:
     var k = msg.IPget_dt; //0-sKey,1-type
-    _self.send("IPres", [k[0], _self.get_local(k[1], k[0])], k[1]);
+    var val = _self.locked(k[0])?"protected!":_self.get_local(k[1], k[0]);
+    _self.send("IPres", [k[0],val,k[1]]);
     break;
   case !!msg.IPset_dt:
     var k = msg.IPset_dt; //0-sKey,1-sVal,2-type
     if (_self.locked(k[0])) {
       _self.send("IPres", [k[0], "protected!", k[2]]);
     } else {
-      _self.set_local(k[2],k[0],k[1]);
-      _self.o.on_data(k[0],k[1])
+      _self.set_local(k[0],k[1],k[2]);
+      _self.o.on_data(k[0],k[1],k[2])
     };
     break;
   case !!msg.IPres:
     var k = msg.IPres
-    console.log(k[0],k[1],k[2])
     _self.o.on_data(k[0],k[1],k[2])
     break;
   case !!msg.IPres_msg:
@@ -153,34 +152,34 @@ interphone.prototype.onMessage = function (event,_self) {
 
 interphone.prototype.init = function () {
   var _self = this;
-  _self.win = window;
-  _self.storage = _self.win.localStorage;
+  _self.w = window;
+  _self.storage = _self.w.localStorage;
 
-  if (!_self.win.postMessage || !_self.win.JSON ) return;
-  _self.ifr = (_self.win.top != _self.win);
+  if (!_self.w.postMessage || !_self.w.JSON ) return;
+  _self.ifr = (_self.w.top != _self.w);
   if (_self.ifr) {
-    var both = _self.win.name.split("--");
+    var both = _self.w.name.split("--");
     _self.uuid = both[0];
     _self.pair = both[1];
   } else {
     _self.uuid = 'xxxxxxx-xxxx-4xxx-yxxx'.to_id();
   };
-  _self.frame = _self.ifr ? _self.win.top : _self.new_iframe().contentWindow;
+  _self.frame = _self.ifr ? _self.w.top : _self.new_iframe().contentWindow;
   if (!_self.ifr) _self.pair = _self.iframe.name.split("--")[0];
 
-  if (_self.win.addEventListener) {
-    _self.win.addEventListener('message', function(event){
+  if (_self.w.addEventListener) {
+    _self.w.addEventListener('message', function(event){
       _self.onMessage(event,_self)
     }, false);
-  } else if(_self.win.attachEvent) {
-    _self.win.attachEvent('onmessage', function(event){
+  } else if(_self.w.attachEvent) {
+    _self.w.attachEvent('onmessage', function(event){
       _self.onMessage(event,_self)
     });
   }
 
-  var interval = _self.win.setInterval(function(){
+  var interval = _self.w.setInterval(function(){
     if (_self.ok) {
-      _self.win.clearInterval(interval);
+      _self.w.clearInterval(interval);
     } else {
       _self.send("IPtest_ok", true); //?
     };

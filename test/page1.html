@@ -3,7 +3,7 @@
 <head>
   <title>Simple interphone Hosted Page 1</title>
   <meta charset="utf-8">
-  <script type="text/javascript" src="../interphone.js"></script>
+  <script src="../interphone.js" charset="UTF-8"></script>
   <script type="text/javascript">
     console.log("starting interphone Page1 connection")
     var CCpage1 = new interphone({
@@ -12,7 +12,6 @@
         CCpage1.set_data("IPCookie","This is awesome!","cookie");
         CCpage1.set_data("IPCookie_protected","You don't gonna have this ever!","cookie");
       }
-      ,me: "page1"
       ,on_data: function(key,val){
         console.log("on_data_server",key,val)
       }

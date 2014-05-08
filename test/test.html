@@ -8,14 +8,13 @@
   <img src="./interphone.png" ALIGN="center" width="100px">
   <div id="qunit"></div>
   <script src="./qunit-git.js"></script>
-  <script src="../interphone.js"></script>
+  <script src="../interphone.js" charset="UTF-8"></script>
   <script type="text/javascript">
     var page1 = new interphone({
       on_ready: function() {
         console.log("client ready")
         // interphone.get("IPCookie");
       }
-      ,me: "home"
       ,on_msg: function(obj) {
         console.log("on_msg from page1",obj)
       }
@@ -29,7 +28,6 @@
       on_ready: function() {
         console.log("client ready again")
       }
-      ,me: "home"
       ,on_msg: function(obj) {
         console.log("on_msg from page2",obj)
       }

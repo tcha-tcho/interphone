@@ -3,7 +3,7 @@
 <head>
   <title>Simple interphone Hosted Page 2</title>
   <meta charset="utf-8">
-  <script type="text/javascript" src="../interphone.js"></script>
+  <script src="../interphone.js" charset="UTF-8"></script>
   <script type="text/javascript">
     console.log("starting interphone Page2 connection")
     var CCpage2 = new interphone({
@@ -15,7 +15,6 @@
         console.log("on_msg on Page2",obj)
         CCpage2.send_msg({msg:"echoo"})
       }
-      ,me: "page2"
       ,on_data: function(key,val){
         console.log("on_data_server",key,val)
       }
