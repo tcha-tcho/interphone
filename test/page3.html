@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple interphone Hosted Page 3</title>
+  <meta charset="utf-8">
+  <script src="../interphone.js" charset="UTF-8"></script>
+  <script type="text/javascript">
+    var src = document.getElementById("script_tag").src.split("/");
+    src = src[src.length - 1]
+
+    var CCpage3 = new interphone({
+      on_ready: function(){
+        CCpage3.set("IPData_only_me",src,"all")
+      }
+      ,closed: true
+    });
+  </script>
+</head>
+<body>
+
+</body>
+</html>
+

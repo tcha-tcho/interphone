@@ -1,3 +1,12 @@
+/**
+ * Interphone.JS
+ *
+ * @author       Tcha-Tcho <tchatcho66@hotmail.com>
+ * @version      Release: 0.0.1-alpha
+ * @license      http://www.gnu.org/licenses/gpl.html GNU GENERAL PUBLIC LICENSE
+ */
+
+
 if (!window.extend) {
   window.extend = function() {
     var a = arguments;
@@ -44,7 +53,7 @@ function interphone(config) {
 }
 
 interphone.prototype.locked = function(sKey) {
-  return ((this.o.lock_keys.indexOf(sKey) != -1) || this.o.closed);
+  return (this.o.lock_keys.indexOf(sKey) != -1);
 }
 
 interphone.prototype.send = function (key,val) {
@@ -90,15 +99,14 @@ interphone.prototype.set_local = function(sKey,sVal,type) {
     if (this.storage) this.storage.setItem(sKey,sVal);
   };
   return sVal;
-}
+};
 
 interphone.prototype.get = function(sKey,type) {
   this.send("IPget_dt", [sKey,(type || "storage")]);
-}
+};
 
 interphone.prototype.set = function(sKey,sVal,type) {
   type = (type || "storage");
-  this.set_local(sKey,sVal,type);
   if (!this.locked(sKey)) this.send("IPset_dt", [sKey,sVal,type]);
 };
 
@@ -134,12 +142,12 @@ interphone.prototype.onMessage = function (event,_self) {
   switch(true) {
   case !!msg.IPget_dt:
     var k = msg.IPget_dt; //0-sKey,1-type
-    var val = _self.locked(k[0])?lock_name:_self.get_local(k[0], k[1]);
+    var val = (_self.locked(k[0]) || _self.o.closed)?lock_name:_self.get_local(k[0], k[1]);
     _self.send("IPres", [k[0],val,k[1]]);
     break;
   case !!msg.IPset_dt:
     var k = msg.IPset_dt; //0-sKey,1-sVal,2-type
-    if (_self.locked(k[0])) {
+    if (_self.locked(k[0]) || _self.o.closed) {
       _self.send("IPres", [k[0], lock_name, k[2]]);
     } else {
       _self.set_local(k[0],k[1],k[2]);

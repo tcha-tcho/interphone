@@ -88,8 +88,7 @@
             ok(val == "protected!", "Cookie_protected is protected")
           };
         }
-        // ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
-        ,serverUrl: "./page1.html"
+        ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
       });
     })
 
@@ -112,8 +111,7 @@
             ok(val == "protected!", "Storage_protected is protected")
           };
         }
-        // ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
-        ,serverUrl: "./page1.html"
+        ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
       });
     })
 
@@ -147,8 +145,7 @@
             start();
           };
         }
-        // ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
-        ,serverUrl: "./page1.html"
+        ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
       });
     })
 
@@ -178,7 +175,7 @@
       var counter = 0;
       var page2 = new interphone({
         on_ready: function(me) {
-          ok(true,"Page 1 is ready to respond")
+          ok(true,"Page 2 is ready to respond")
           equal(me,"blocked","This page is not allowed to connect")
           page2.set("IPData_hosts","testing","storage")
           setTimeout(function(){
@@ -192,8 +189,32 @@
           equal(type,"all","hidding types")
           if (counter == 2) start();
         }
-        // ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page2.html"
-        ,serverUrl: "./page2.html"
+        ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page2.html"
+      });
+    })
+
+    asyncTest( "Page 3, Server is closed. Does not accept calls.", function() {
+      expect( 5 );
+      var counter = 0;
+      var page2 = new interphone({
+        on_ready: function(me) {
+          ok(true,"Page 3 is ready to respond")
+          page2.set("IPData_call_forbitten","testing","all")
+        }
+        ,on_data: function(key,val,type) {
+          counter++;
+          console.log(key)
+          if(key == "IPData_call_forbitten") {
+            equal(val,"protected!","But value is hidden")
+            equal(type,"all","type is correct")
+          } else if (key == "IPData_only_me") {
+            equal(val,"interphone.min.js","Value is correct when drove by closed Server")
+            equal(val,"interphone.min.js","Server is using minified version")
+            equal(type,"all","type is correct")
+          }
+          if (counter == 2) start();
+        }
+        ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page3.html"
       });
     })
 
