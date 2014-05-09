@@ -31,7 +31,7 @@ if (!window.extend) {
 
 if(!String.to_id) {
   /**
-   * Atach to String the capacity of
+   * Attached to String the capacity of
    * transform itself into a mix of letters
    * and numbers, good to use as a unique ID
    * @example
@@ -51,7 +51,7 @@ if(!String.to_id) {
 
 if(!String.cypher) {
   /**
-   * Atach to String the capacity of Cypher itself
+   * Attached to String the capacity of Cypher itself
    * given a certain key. To decypher you just
    * pass the encrypted text with the same key again
    * Note that you can reencrypt the same String several times
@@ -175,7 +175,7 @@ interphone.prototype.new_iframe = function () {
  * Will return the Data stored into the page domain
  * The options are 'cookie','storage','all'
  * Cookie will return a String aways
- * Storage will return what you store into that key
+ * Storage will return what you stored into that key
  * @param  {String} sKey
  * @param  {String} type
  * @return {String}

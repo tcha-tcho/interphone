@@ -1,19 +1,20 @@
 <img src="./test/interphone.png" ALIGN="center" width="200px" style="float:right;">
 
 *Your cross domain intercom rock star. 3.4kb that will save your ass.*
-With interphone you can remotly set and get cookies, localStorage or both.
+With interphone you can remotely set and get cookies, localStorage or both.
 You also can send and receive messages
 
 
 ## Installation
 ###Client and Server
 ```html
-<script src="interphone.js" charset="UTF-8"></script>
+<script src="interphone.min.js" charset="UTF-8"></script>
 ```
 
 ## Usage
 
-Get your blessed Data everywhere.
+Get your blessed Data **everywhere**.
+
 And you can customize your **interphone** \o/
 
 ```javascript
@@ -25,20 +26,22 @@ And you can customize your **interphone** \o/
      hosts: "*"
     //Your 'Server' that will receive a call
     ,serverUrl: ""
-    //Hey this cookies/storage are secret
+    //Hey! This cookies/storage are secret
     ,lock_keys: []
-    //You know what? Just me will talk!
+    //You know what? Lets me speak alone!
     ,closed: false
     //"http://onlyme.com" will receive messages - default is all listeners
     ,target: "*"
-    //Huston we have a connection
+    //Huston, we have a connection
     ,on_ready: function(this_phone){}
     //Every time you request a info or someone set a new Data. Here you will know
     ,on_data: function(key,val,type){}
-    //Some one is calling you
+    //Some one is calling you!
     ,on_msg: function(){obj}
   })
 ```
+
+### `Please, take a look into /test for further samples and usage`
 
 ## Features
 
@@ -79,7 +82,7 @@ var new_obj = window.extend(obj1,obj2...)
 
 String.to_id()
 -------
-Atach to String the capacity of
+Attached to to String the capacity of
 transform itself into a mix of letters
 and numbers, good to use as a unique ID
 ```javascript
@@ -146,7 +149,7 @@ get_local(sKey, type)
 Will return the Data stored into the page domain
 The options are 'cookie','storage','all'
 Cookie will return a String aways
-Storage will return what you store into that key
+Storage will return what you stored into that key
 
 **Parameters**
 
@@ -193,8 +196,8 @@ Set the data everywhere. Into your page and the other
 Security options may apply
 If no type is selected 'storage' will be used
 When someone set a data into your page this will fire
-on_data: function(key,val,type){}
 ```javascript
+on_data: function(key,val,type){}
 page1.set("my_key","My Value!","all");
 ```
 **Parameters**
