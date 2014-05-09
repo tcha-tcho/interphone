@@ -109,6 +109,7 @@ interphone.prototype.onMessage = function (event,_self) {
   if (uuid != _self.pair) return;
   var blob = data.split("--")[1].cypher(_self.uuid+_self.pair);
   var msg = JSON.parse(blob);
+  var lock_name = "protected!"
 
   if (_self.o.hosts != "*" && 
       _self.o.hosts.indexOf(event.origin) == -1) {
@@ -124,20 +125,22 @@ interphone.prototype.onMessage = function (event,_self) {
   case !!msg.IPtest_ok:
     _self.send("IPok", _self.block || "go");
     break;
+  case !!_self.block:
+    _self.send("IPres",["key",lock_name,"all"]);
+    return;
+    break;
   }
-
-  // if (_self.block) return;
 
   switch(true) {
   case !!msg.IPget_dt:
     var k = msg.IPget_dt; //0-sKey,1-type
-    var val = _self.locked(k[0])?"protected!":_self.get_local(k[0], k[1]);
+    var val = _self.locked(k[0])?lock_name:_self.get_local(k[0], k[1]);
     _self.send("IPres", [k[0],val,k[1]]);
     break;
   case !!msg.IPset_dt:
     var k = msg.IPset_dt; //0-sKey,1-sVal,2-type
     if (_self.locked(k[0])) {
-      _self.send("IPres", [k[0], "protected!", k[2]]);
+      _self.send("IPres", [k[0], lock_name, k[2]]);
     } else {
       _self.set_local(k[0],k[1],k[2]);
       _self.o.on_data(k[0],k[1],k[2])
@@ -150,8 +153,6 @@ interphone.prototype.onMessage = function (event,_self) {
   case !!msg.IPres_msg:
     _self.o.on_msg(msg.IPres_msg)
     break;
-  default:
-    // _self.o.on_msg(msg);
   }
 
 };

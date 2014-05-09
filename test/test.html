@@ -173,10 +173,9 @@
       });
     })
 
-
     asyncTest( "Page 2, define 'hosts' block comunications with this page", function() {
-      expect( 2 );
-      // var counter = 0;
+      expect( 8 );
+      var counter = 0;
       var page2 = new interphone({
         on_ready: function(me) {
           ok(true,"Page 1 is ready to respond")
@@ -187,28 +186,17 @@
           },100)
         }
         ,on_data: function(key,val,type) {
-
+          counter++;
+          equal(key,"key","hidding key")
+          equal(val,"protected!","hidding values")
+          equal(type,"all","hidding types")
+          if (counter == 2) start();
         }
         // ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page2.html"
         ,serverUrl: "./page2.html"
       });
     })
-    /*
-    */
 
-    // var page2 = new interphone({
-    //   on_ready: function() {
-    //     console.log("client ready again")
-    //   }
-    //   ,on_msg: function(obj) {
-    //     console.log("on_msg from page2",obj)
-    //   }
-    //   ,on_data: function(key,val) {
-    //     console.log("on_data from page2",key,val);
-    //   }
-    //   // ,serverUrl: "./page2.html"
-    //   ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page2.html"
-    // });
   </script>
 
 </body>
