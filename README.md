@@ -73,6 +73,7 @@ and will return a new one
 var new_obj = window.extend(obj1,obj2...)
 ```
 **Parameters**
+
 *Object*,  many as you need
 
 
@@ -100,6 +101,7 @@ var plain = secret.cypher("my key")
 plain == "This is secret"
 ```
 **Parameters**
+
 **key**:  *String*,  
 
 
@@ -120,6 +122,7 @@ var page1 = new interphone({
 })
 ```
 **Parameters**
+
 **config**:  *Object*,  
 
 
@@ -134,6 +137,7 @@ The other page will receive this calls into
 on_msg: function(obj){}
 ```
 **Parameters**
+
 **obj**:  ***,  
 
 
@@ -143,8 +147,11 @@ Will return the Data stored into the page domain
 The options are 'cookie','storage','all'
 Cookie will return a String aways
 Storage will return what you store into that key
+
 **Parameters**
+
 **sKey**:  *String*,  
+
 **type**:  *String*,  
 
 
@@ -153,9 +160,13 @@ set_local(sKey, sVal, type)
 Will set the Data into the page domain
 type options are: 'cookie','storage','all'
 You may store a Object when using 'storage'
+
 **Parameters**
+
 **sKey**:  *String*,  key desired
+
 **sVal**:  *String*,  value to be stored
+
 **type**:  *String*,  where you want to store
 
 
@@ -170,7 +181,9 @@ The Data will return at
 on_data: function(key,val,type){}
 ```
 **Parameters**
+
 **sKey**:  *String*,  Key desired
+
 **type**:  *String*,  Where to look 'storage','cookie','all'
 
 
@@ -185,8 +198,11 @@ on_data: function(key,val,type){}
 page1.set("my_key","My Value!","all");
 ```
 **Parameters**
+
 **sKey**:  *String*,  Key desired
+
 **sVal**:  *String*,  Value, you may use a Object too
+
 **type**:  *String*,  'cookie','storage','all'
 
 
