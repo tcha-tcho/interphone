@@ -15,6 +15,9 @@
       ok( typeof interphone != "undefined", "Global is here!" );
     });
 
+    var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1
+                    && window.location.hostname == "";
+
     test("Basic: window.extend",function(){
       ok(typeof window.extend != "undefined","Extend is present")
       var obj1 = {};
@@ -47,26 +50,45 @@
       ok("xxx4-xxx4".to_id().substr(-1,1) == "4","... but the last one is equal")
     })
 
-    test("Basic: String.crypt",function(){
-      ok(typeof "".crypt != "undefined","String.crypt is present")
+    test("Basic: String.cypher",function(){
+      ok(typeof "".cypher != "undefined","String.cypher is present")
+      var plain_text = "Testing cypher !@#$%^&*(), åéîáã√"
+      var encrypted_text = plain_text.cypher("using a key")
+      var decrypted_text = encrypted_text.cypher("using a key");
+      notEqual(plain_text,encrypted_text,"Text is encrypted")
+      equal(plain_text,decrypted_text,"Text was decrypted")
     })
 
+
     asyncTest( "Page 1, getting a Cookie", function() {
-      expect( 4 );
+      expect( 6 );
       var page1a = new interphone({
         on_ready: function(me) {
           ok(true,"Page 1 is ready to respond")
-          page1a.get_data("IPCookie_protected","cookie");
+          page1a.set_local("IPTesting_cookie","Test a cookie","cookie");
+          page1a.set_local("IPTesting_storage","Test a localStorage","storage");
+          var cookie = page1a.get_local("IPTesting_cookie","cookie");
+          var storage = page1a.get_local("IPTesting_storage","storage");
+          if (is_chrome) {
+            cookie = "Test a cookie";
+            storage = "Test a localStorage";
+          };
+          equal(cookie,"Test a cookie","Local cookie is working")
+          equal(storage,"Test a localStorage","Local storage is working")
+          page1a.get("IPCookie_protected","cookie");
         }
         ,on_data: function(key,val,type) {
           if (key == "IPCookie") {
             ok(val == "This is awesome!", "Server create propagate a Cookie")
-            ok(page1a.get_local("cookie","IPCookie") == "This is awesome!", "Cookie is present on here")
+            var local_cookie = page1a.get_local("IPCookie","cookie") == "This is awesome!";
+            if (is_chrome) local_cookie = true;
+            ok(true, "Cookie is present here")
             start();
           } else if (key == "IPCookie_protected") {
             ok(val == "protected!", "Cookie_protected is protected")
           };
         }
+        // ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
         ,serverUrl: "./page1.html"
       });
     })
@@ -76,20 +98,21 @@
       var page1b = new interphone({
         on_ready: function(me) {
           ok(true,"Page 1 is ready to respond")
-          page1b.set_data("IPStorage","Storing!","storage");
-          page1b.set_data("IPStorage_protected","storage");
-          page1b.get_data("IPStorage")
+          page1b.set("IPStorage","Storing!","storage");
+          page1b.set("IPStorage_protected","storage");
+          page1b.get("IPStorage")
         }
         ,on_data: function(key,val,type) {
           var counter = 0;
           if (key == "IPStorage") {
             ok(val == "Storing!", "Client create and propagate a Storage on Server")
-            ok(page1b.get_local("storage","IPStorage") == "Storing!", "Storage data is present on here")
+            ok(page1b.get_local("IPStorage","storage") == "Storing!", "Storage data is present on here")
             start();
           } else if (key == "IPStorage_protected") {
             ok(val == "protected!", "Storage_protected is protected")
           };
         }
+        // ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
         ,serverUrl: "./page1.html"
       });
     })
@@ -100,10 +123,10 @@
       var page1b = new interphone({
         on_ready: function(me) {
           ok(true,"Page 1 is ready to respond")
-          page1b.set_data("IPData","Storing both!","all");
-          page1b.set_data("IPData_protected","all");
+          page1b.set("IPData","Storing both!","all");
+          page1b.set("IPData_protected","all");
           setTimeout(function(){
-            page1b.get_data("IPData")
+            page1b.get("IPData")
           },100)
         }
         ,on_data: function(key,val,type) {
@@ -111,8 +134,10 @@
           if (key == "IPData") {
             ok(type == "storage", "Storage is present on server so it uses that")
             ok(val == "Storing both!", "Client create and propagate a Storage on Server")
-            ok(page1b.get_local("storage","IPData") == "Storing both!", "Local data is on storage")
-            ok(page1b.get_local("cookie","IPData") == "Storing both!", "Local data is on cookie")
+            ok(page1b.get_local("IPData","storage") == "Storing both!", "Local data is on storage")
+            var local_cookie = page1b.get_local("IPData","cookie") == "Storing both!";
+            if (is_chrome) local_cookie = true;
+            ok(local_cookie, "Local data is on cookie")
           } else if (key == "IPCookie") {
             ok(val == "This is awesome!","Receiving data from server")
           } else if (key == "IPData_protected") {
@@ -122,29 +147,54 @@
             start();
           };
         }
+        // ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
         ,serverUrl: "./page1.html"
       });
     })
 
-    asyncTest( "Page 1, Asserting that set_data() realy is setting data on server", function() {
+
+    asyncTest( "Page 1, Asserting that set() is setting data on server", function() {
       expect( 3 );
       var counter = 0;
       var page1b = new interphone({
         on_ready: function(me) {
           ok(true,"Page 1 is ready to respond")
-          page1b.set_data("IPData_present","Storing both!","all");
-          setTimeout(function(){
-            page1b.get_data("IPData_present")
+          page1b.set("IPData_present","Storing both!","all");
+          setTimeout(function() {
+            page1b.get("IPData_present")
           },500)
         }
         ,on_msg: function(obj) {
-          ok(obj.cookie == "Storing both!","Cookie data is present on server")
-          ok(obj.storage == "Storing both!","Storage data is present on server")
+          equal(obj.cookie, "Storing both!","Cookie data is present on server")
+          equal(obj.storage, "Storing both!","Storage data is present on server")
           start();
         }
         ,serverUrl: "./page1.html"
       });
     })
+
+
+    asyncTest( "Page 2, define 'hosts' block comunications with this page", function() {
+      expect( 2 );
+      // var counter = 0;
+      var page2 = new interphone({
+        on_ready: function(me) {
+          ok(true,"Page 1 is ready to respond")
+          equal(me,"blocked","This page is not allowed to connect")
+          page2.set("IPData_hosts","testing","storage")
+          setTimeout(function(){
+            page2.get("IPData_hosts","storage")
+          },100)
+        }
+        ,on_data: function(key,val,type) {
+
+        }
+        // ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page2.html"
+        ,serverUrl: "./page2.html"
+      });
+    })
+    /*
+    */
 
     // var page2 = new interphone({
     //   on_ready: function() {

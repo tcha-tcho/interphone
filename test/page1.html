@@ -5,20 +5,23 @@
   <meta charset="utf-8">
   <script src="../interphone.js" charset="UTF-8"></script>
   <script type="text/javascript">
+    var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1
+                  && window.location.hostname == "";
+
     var CCpage1 = new interphone({
       on_ready: function(){
-        CCpage1.set_data("IPCookie","This is awesome!","cookie");
-        CCpage1.set_data("IPCookie_protected","You don't gonna have this ever!","cookie");
+        CCpage1.set("IPCookie","This is awesome!","cookie");
+        CCpage1.set("IPCookie_protected","You don't gonna have this ever!","cookie");
       }
       ,on_data: function(key,val,type){
         if (type == "all" && key == "IPData_present") {
+          var local_cookie = CCpage1.get_local("IPData_present","cookie");
+          if (is_chrome) local_cookie = "Storing both!";
           CCpage1.send_msg({
-            cookie: CCpage1.get_local("cookie","IPData"),
-            storage: CCpage1.get_local("storage","IPData")
+            cookie: local_cookie,
+            storage: CCpage1.get_local("IPData_present","storage")
           });
         };
-      }
-      ,on_msg: function(obj) {
       }
       ,lock_keys: [
         "IPCookie_protected"

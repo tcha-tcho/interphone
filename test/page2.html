@@ -5,19 +5,14 @@
   <meta charset="utf-8">
   <script src="../interphone.js" charset="UTF-8"></script>
   <script type="text/javascript">
-    console.log("starting interphone Page2 connection")
     var CCpage2 = new interphone({
       on_ready: function(){
-        console.log("Page 2 is ready")
         CCpage2.send_msg({msg:"hei"})
       }
       ,on_msg: function(obj) {
-        console.log("on_msg on Page2",obj)
         CCpage2.send_msg({msg:"echoo"})
       }
-      ,on_data: function(key,val){
-        console.log("on_data_server",key,val)
-      }
+      ,hosts: ["http://github.com","http://bitbucket.com"]
     });
   </script>
 </head>

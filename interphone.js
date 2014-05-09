@@ -18,8 +18,8 @@ if(!String.to_id) {
   };
 };
 
-if(!String.crypt) {
-  String.prototype.crypt = function(key) {
+if(!String.cypher) {
+  String.prototype.cypher = function(key) {
     var new_text = '';
     for (var i = 0; i < this.length; i++) {
       var k = key.charCodeAt(i%key.length);
@@ -50,7 +50,7 @@ interphone.prototype.locked = function(sKey) {
 interphone.prototype.send = function (key,val) {
   var _self = this;
   var obj = {}; obj[key] = val;
-  var encrypted = JSON.stringify(obj).crypt(_self.pair+_self.uuid);
+  var encrypted = JSON.stringify(obj).cypher(_self.pair+_self.uuid);
   _self.frame.postMessage(_self.uuid + "--" + encrypted, _self.o.target);
 }
 
@@ -72,7 +72,7 @@ interphone.prototype.new_iframe = function () {
   return _self.iframe;
 };
 
-interphone.prototype.get_local = function(type,sKey) {
+interphone.prototype.get_local = function(sKey,type) {
   var regex = new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey)
     .replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$");
   var cookie = decodeURIComponent(document.cookie.replace(regex, "$1")) || null;
@@ -92,11 +92,11 @@ interphone.prototype.set_local = function(sKey,sVal,type) {
   return sVal;
 }
 
-interphone.prototype.get_data = function(sKey,type) {
+interphone.prototype.get = function(sKey,type) {
   this.send("IPget_dt", [sKey,(type || "storage")]);
 }
 
-interphone.prototype.set_data = function(sKey,sVal,type) {
+interphone.prototype.set = function(sKey,sVal,type) {
   type = (type || "storage");
   this.set_local(sKey,sVal,type);
   if (!this.locked(sKey)) this.send("IPset_dt", [sKey,sVal,type]);
@@ -105,27 +105,33 @@ interphone.prototype.set_data = function(sKey,sVal,type) {
 interphone.prototype.onMessage = function (event,_self) {
   if (!event) event = window.event; //IE
   var data = (event.data || "");
-  if (_self.o.hosts != "*") {
-    var host = _self.frame.location.hostname
-    if (event.origin != host) return;
-    if (_self.o.hosts.indexOf(host) == -1) return;
-  };
   var uuid = data.split("--")[0];
   if (uuid != _self.pair) return;
-  var blob = data.split("--")[1].crypt(_self.uuid+_self.pair);
+  var blob = data.split("--")[1].cypher(_self.uuid+_self.pair);
   var msg = JSON.parse(blob);
 
+  if (_self.o.hosts != "*" && 
+      _self.o.hosts.indexOf(event.origin) == -1) {
+        _self.block = "blocked";
+  };
+
   switch(true) {
-  case !!msg.IPim_ok:
+  case !!msg.IPok:
     _self.ok = true;
-    _self.o.on_ready();
+    if (msg.IPok == "go") msg.IPok = _self;
+    _self.o.on_ready(msg.IPok);
     break;
   case !!msg.IPtest_ok:
-    _self.send("IPim_ok", true);
+    _self.send("IPok", _self.block || "go");
     break;
+  }
+
+  // if (_self.block) return;
+
+  switch(true) {
   case !!msg.IPget_dt:
     var k = msg.IPget_dt; //0-sKey,1-type
-    var val = _self.locked(k[0])?"protected!":_self.get_local(k[1], k[0]);
+    var val = _self.locked(k[0])?"protected!":_self.get_local(k[0], k[1]);
     _self.send("IPres", [k[0],val,k[1]]);
     break;
   case !!msg.IPset_dt:
@@ -145,7 +151,7 @@ interphone.prototype.onMessage = function (event,_self) {
     _self.o.on_msg(msg.IPres_msg)
     break;
   default:
-    _self.o.on_msg(msg);
+    // _self.o.on_msg(msg);
   }
 
 };
