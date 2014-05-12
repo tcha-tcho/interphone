@@ -166,7 +166,7 @@ interphone.prototype.new_iframe = function () {
   iframeStyle.position = 'absolute';
   iframeStyle.left = iframeStyle.top = '-999px';
 
-  doc.head.appendChild(_self.iframe);
+  doc.getElementsByTagName('head')[0].appendChild(_self.iframe);
   _self.iframe.src = this.o.serverUrl;
   return _self.iframe;
 };
