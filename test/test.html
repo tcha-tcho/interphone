@@ -62,6 +62,12 @@
       notEqual(plain_text,encrypted_text,"Text is encrypted")
       equal(plain_text,decrypted_text,"Text was decrypted")
       equal(plain_text,redecrypted_text,"Text was decrypted twice")
+      var plain_JSON = '{"IPres":["IPData","Storing both!","storage"]}';
+      var uuid_sample = "1dcbf1d-c6a8-4243-bb1089b3f60-3e41-4fc3-9394";
+      var encrypted_JSON = plain_JSON.cypher(uuid_sample);
+      var decrypted_JSON = encrypted_JSON.cypher(uuid_sample)
+      equal(plain_JSON, decrypted_JSON, "JSON was decrypted as expected")
+      equal(JSON.parse(decrypted_JSON).IPres[0], "IPData", "JSON was parsed as expected")
     })
 
 
