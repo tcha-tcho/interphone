@@ -41,6 +41,7 @@
       equal(all.arr[1], 2,"Array number is correct")
       equal(all.func("great!"), "great!","Function is working")
     })
+    
 
     test("Basic: String.to_id",function(){
       ok(typeof "".to_id != "undefined","String.to_id is present")
@@ -49,6 +50,7 @@
       ok("xxx4-xxx4".to_id().substr(0,1) != "x","First letter is different...")
       ok("xxx4-xxx4".to_id().substr(-1,1) == "4","... but the last one is equal")
     })
+
 
     test("Basic: String.cypher",function(){
       ok(typeof "".cypher != "undefined","String.cypher is present")
@@ -99,6 +101,7 @@
       });
     })
 
+
     asyncTest( "Page 1, setting and getting a Storage", function() {
       expect( 4 );
       var counter = 0;
@@ -125,6 +128,7 @@
         ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
       });
     })
+
 
     asyncTest( "Page 1, setting and getting Storage and Cookie via 'all'", function() {
       expect( 7 );
@@ -181,6 +185,7 @@
       });
     })
 
+
     asyncTest( "Page 2, define 'hosts' block comunications with this page", function() {
       expect( 8 );
       var counter = 0;
@@ -203,6 +208,7 @@
         ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page2.html"
       });
     })
+
 
     asyncTest( "Page 3, Server is closed. Does not accept calls.", function() {
       expect( 6 );
