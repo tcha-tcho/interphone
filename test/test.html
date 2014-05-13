@@ -90,6 +90,9 @@
           } else if (key == "IPCookie_protected") {
             ok(val == "protected!", "Cookie_protected is protected")
           };
+          if (counter > 2) {
+            start();
+          };
         }
         ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
       });
@@ -112,6 +115,9 @@
             start();
           } else if (key == "IPStorage_protected") {
             ok(val == "protected!", "Storage_protected is protected")
+          };
+          if (counter > 2) {
+            start();
           };
         }
         ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
