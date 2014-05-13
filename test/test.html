@@ -48,7 +48,7 @@
       ok("xxxx-xxx".to_id() != "xxxx-xxx","ID is different of original template")
       ok("1234-1234".to_id() == "1234-1234","ID is equal when hard coding values")
       ok("xxx4-xxx4".to_id().substr(0,1) != "x","First letter is different...")
-      ok("xxx4-xxx4".to_id().substr(-1,1) == "4","... but the last one is equal")
+      ok("xxx4-xxx4".to_id().slice(-1,9) == "4","... but the last one is equal")
     })
 
 
