@@ -41,7 +41,7 @@
       equal(all.arr[1], 2,"Array number is correct")
       equal(all.func("great!"), "great!","Function is working")
     })
-    
+
 
     test("Basic: String.to_id",function(){
       ok(typeof "".to_id != "undefined","String.to_id is present")
@@ -220,7 +220,6 @@
         }
         ,on_data: function(key,val,type) {
           counter++;
-          console.log(key)
           if(key == "IPData_call_forbitten") {
             equal(val,"protected!","But value is hidden")
             equal(type,"all","type is correct")

@@ -281,8 +281,11 @@ interphone.prototype.onMessage = function (event,_self) {
   var data = (event.data || "");
   var uuid = data.split("--")[0];
   if (uuid != _self.pair) return;
+  console.log(data.split("--")[1])
+  console.log(data.split("--")[1].length)
   var blob = data.split("--")[1].cypher(_self.uuid+_self.pair);
   console.log(blob)
+  console.log(blob.length)
   var msg = JSON.parse(blob);
   var lock_name = "protected!"
 
