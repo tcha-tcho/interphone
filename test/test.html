@@ -65,6 +65,7 @@
 
     asyncTest( "Page 1, getting a Cookie", function() {
       expect( 6 );
+      var counter = 0;
       var page1a = new interphone({
         on_ready: function(me) {
           ok(true,"Page 1 is ready to respond")
@@ -100,6 +101,7 @@
 
     asyncTest( "Page 1, setting and getting a Storage", function() {
       expect( 4 );
+      var counter = 0;
       var page1b = new interphone({
         on_ready: function(me) {
           ok(true,"Page 1 is ready to respond")
