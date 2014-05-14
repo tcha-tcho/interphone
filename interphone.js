@@ -153,9 +153,8 @@ interphone.prototype.locked = function(sKey) {
 interphone.prototype.send = function (key,val) {
   var _self = this;
   var obj = {}; obj[key] = val;
-  var encrypted = JSON.stringify(obj)
-  // var encrypted = JSON.stringify(obj).cypher(_self.pair+_self.uuid);
-  _self.frame.postMessage(_self.uuid + "--" + encrypted, _self.o.target);
+  var encrypted = JSON.stringify(obj).cypher(_self.pair+_self.uuid);
+  _self.frame.postMessage(_self.uuid + "--" + encodeURIComponent(encrypted), _self.o.target);
 }
 
 /**
@@ -282,9 +281,7 @@ interphone.prototype.onMessage = function (event,_self) {
   var data = (event.data || "");
   var uuid = data.split("--")[0];
   if (uuid != _self.pair) return;
-  // var blob = data.split("--")[1].cypher(_self.uuid+_self.pair);
-  var blob = data.split("--")[1]
-  console.log(blob)
+  var blob = decodeURIComponent(data.split("--")[1]).cypher(_self.uuid+_self.pair);
   var msg = JSON.parse(blob);
   var lock_name = "protected!"
 
