@@ -11,23 +11,12 @@
  * IE8 compatibility. indexOf for Array is not present
  */
 if (!Array.prototype.indexOf) {
-  Array.prototype.indexOf = function(elt /*, from*/) {
-    var len = this.length >>> 0;
-
-    var from = Number(arguments[1]) || 0;
-    from = (from < 0)
-         ? Math.ceil(from)
-         : Math.floor(from);
-    if (from < 0)
-      from += len;
-
-    for (; from < len; from++) {
-      if (from in this &&
-          this[from] === elt)
-        return from;
+  Array.prototype.indexOf = function(obj, start) {
+    for (var i = (start || 0), j = this.length; i < j; i++) {
+      if (this[i] === obj) { return i; }
     }
     return -1;
-  };
+  }
 };
 
 if (!window.extend) {
@@ -154,7 +143,7 @@ interphone.prototype.send = function (key,val) {
   var _self = this;
   var obj = {}; obj[key] = val;
   var encrypted = JSON.stringify(obj).cypher(_self.pair+_self.uuid);
-  _self.frame.postMessage(_self.uuid + "--" + encrypted, _self.o.target);
+  _self.frame.postMessage(_self.uuid + "--" + encodeURIComponent(encrypted), _self.o.target);
 }
 
 /**
@@ -281,8 +270,7 @@ interphone.prototype.onMessage = function (event,_self) {
   var data = (event.data || "");
   var uuid = data.split("--")[0];
   if (uuid != _self.pair) return;
-  var blob = data.split("--")[1].cypher(_self.uuid+_self.pair);
-  console.log(blob)
+  var blob = decodeURIComponent(data.split("--")[1]).cypher(_self.uuid+_self.pair);
   var msg = JSON.parse(blob);
   var lock_name = "protected!"
 
