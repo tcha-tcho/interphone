@@ -15,11 +15,11 @@
       }
       ,on_data: function(key,val,type){
         if (type == "all" && key == "IPData_present") {
-          var local_cookie = CCpage1.get_local("IPData_present","cookie");
+          var local_cookie = interphone_get_local("IPData_present","cookie");
           if (is_chrome) local_cookie = "Storing both!";
           CCpage1.send_msg({
             cookie: local_cookie,
-            storage: CCpage1.get_local("IPData_present","storage")
+            storage: interphone_get_local("IPData_present","storage")
           });
         };
       }

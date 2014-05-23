@@ -9,6 +9,7 @@
   <div id="qunit"></div>
   <script src="./qunit-git.js"></script>
   <script src="../interphone.js" charset="UTF-8"></script>
+
   <script type="text/javascript">
 
     test( "Is present", function() {
@@ -77,10 +78,10 @@
       var page1a = new interphone({
         on_ready: function(me) {
           ok(true,"Page 1 is ready to respond")
-          page1a.set_local("IPTesting_cookie","Test a cookie","cookie");
-          page1a.set_local("IPTesting_storage","Test a localStorage","storage");
-          var cookie = page1a.get_local("IPTesting_cookie","cookie");
-          var storage = page1a.get_local("IPTesting_storage","storage");
+          interphone_set_local("IPTesting_cookie","Test a cookie","cookie");
+          interphone_set_local("IPTesting_storage","Test a localStorage","storage");
+          var cookie = interphone_get_local("IPTesting_cookie","cookie");
+          var storage = interphone_get_local("IPTesting_storage","storage");
           if (is_chrome) {
             cookie = "Test a cookie";
             storage = "Test a localStorage";
@@ -92,7 +93,7 @@
         ,on_data: function(key,val,type) {
           if (key == "IPCookie") {
             ok(val == "This is awesome!", "Server create propagate a Cookie")
-            var local_cookie = page1a.get_local("IPCookie","cookie") == "This is awesome!";
+            var local_cookie = interphone_get_local("IPCookie","cookie") == "This is awesome!";
             if (is_chrome) local_cookie = true;
             ok(true, "Cookie is present here")
             start();
@@ -122,7 +123,7 @@
           var counter = 0;
           if (key == "IPStorage") {
             ok(val == "Storing!", "Client create and propagate a Storage on Server")
-            ok(page1b.get_local("IPStorage","storage") == "Storing!", "Storage data is present on here")
+            ok(interphone_get_local("IPStorage","storage") == "Storing!", "Storage data is present on here")
             start();
           } else if (key == "IPStorage_protected") {
             ok(val == "protected!", "Storage_protected is protected")
@@ -153,8 +154,8 @@
           if (key == "IPData") {
             ok(type == "storage", "Storage is present on server so it uses that")
             ok(val == "Storing both!", "Client create and propagate a Storage on Server")
-            ok(page1b.get_local("IPData","storage") == "Storing both!", "Local data is on storage")
-            var local_cookie = page1b.get_local("IPData","cookie") == "Storing both!";
+            ok(interphone_get_local("IPData","storage") == "Storing both!", "Local data is on storage")
+            var local_cookie = interphone_get_local("IPData","cookie") == "Storing both!";
             if (is_chrome) local_cookie = true;
             ok(local_cookie, "Local data is on cookie")
           } else if (key == "IPCookie") {
