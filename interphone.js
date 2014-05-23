@@ -87,6 +87,44 @@ if(!String.cypher) {
   };
 };
 
+
+/**
+ * Will return the Data stored into the page domain
+ * The options are 'cookie','storage','all'
+ * Cookie will return a String aways
+ * Storage will return what you stored into that key
+ * @param  {String} sKey
+ * @param  {String} type
+ * @return {String}
+ */
+var interphone_get_local = function(sKey,type) {
+  var regex = new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey)
+    .replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$");
+  var cookie = decodeURIComponent(document.cookie.replace(regex, "$1")) || null;
+  var storage = (window.localStorage)?window.localStorage.getItem(sKey):"!storage";
+  if (type == "storage") return storage;
+  if (type == "cookie") return cookie;
+  if (type == "all") return (storage || cookie);
+}
+
+/**
+ * Will set the Data into the page domain
+ * type options are: 'cookie','storage','all'
+ * You may store a Object when using 'storage'
+ * @param {String} sKey key desired
+ * @param {String} sVal value to be stored
+ * @param {String} type where you want to store
+ */
+var interphone_set_local = function(sKey,sVal,type) {
+  if (type=="cookie" || type=="all") {
+    document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sVal);
+  };
+  if (type=="storage" || type=="all") {
+    if (window.localStorage) window.localStorage.setItem(sKey,sVal);
+  };
+  return sVal;
+};
+
 /**
  * Main class.
  * You have to instanciate a new interphone({options})
@@ -181,43 +219,6 @@ interphone.prototype.new_iframe = function () {
   doc.getElementsByTagName('head')[0].appendChild(_self.iframe);
   _self.iframe.src = this.o.serverUrl;
   return _self.iframe;
-};
-
-/**
- * Will return the Data stored into the page domain
- * The options are 'cookie','storage','all'
- * Cookie will return a String aways
- * Storage will return what you stored into that key
- * @param  {String} sKey
- * @param  {String} type
- * @return {String}
- */
-var interphone_get_local = function(sKey,type) {
-  var regex = new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey)
-    .replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$");
-  var cookie = decodeURIComponent(document.cookie.replace(regex, "$1")) || null;
-  var storage = (this.storage)?this.storage.getItem(sKey):"!storage";
-  if (type == "storage") return storage;
-  if (type == "cookie") return cookie;
-  if (type == "all") return (storage || cookie);
-}
-
-/**
- * Will set the Data into the page domain
- * type options are: 'cookie','storage','all'
- * You may store a Object when using 'storage'
- * @param {String} sKey key desired
- * @param {String} sVal value to be stored
- * @param {String} type where you want to store
- */
-var interphone_set_local = function(sKey,sVal,type) {
-  if (type=="cookie" || type=="all") {
-    document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sVal);
-  };
-  if (type=="storage" || type=="all") {
-    if (this.storage) this.storage.setItem(sKey,sVal);
-  };
-  return sVal;
 };
 
 /**
@@ -328,7 +329,6 @@ interphone.prototype.onMessage = function (event,_self) {
 interphone.prototype.init = function () {
   var _self = this;
   _self.w = window;
-  _self.storage = _self.w.localStorage;
 
   if (!_self.w.postMessage || !_self.w.JSON ) return;
   _self.ifr = (_self.w.top != _self.w);
