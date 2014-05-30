@@ -73,7 +73,7 @@
 
 
     asyncTest( "Page 1, getting a Cookie", function() {
-      expect( 6 );
+      expect( 7 );
       var counter = 0;
       var page1a = new interphone({
         on_ready: function(me) {
@@ -89,23 +89,28 @@
           equal(cookie,"Test a cookie","Local cookie is working")
           equal(storage,"Test a localStorage","Local storage is working")
           page1a.get("IPCookie_protected","cookie");
+          page1a.get("IPCookie_not_existent","cookie")
         }
         ,on_data: function(key,val,type) {
           if (key == "IPCookie") {
+            counter ++;
             ok(val == "This is awesome!", "Server create propagate a Cookie")
             var local_cookie = interphone_get_local("IPCookie","cookie") == "This is awesome!";
             if (is_chrome) local_cookie = true;
             ok(true, "Cookie is present here")
-            start();
           } else if (key == "IPCookie_protected") {
+            counter ++;
             ok(val == "protected!", "Cookie_protected is protected")
+          } else if (key == "IPCookie_not_existent") {
+            counter ++;
+            equal(val, null, "When ask a non existent Value it return null")
           };
-          if (counter > 2) {
+          if (counter >= 3) {
             start();
           };
         }
-        ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
-        // ,serverUrl: "page1.html"
+        // ,serverUrl: "https://rawgit.com/tcha-tcho/interphone/master/test/page1.html"
+        ,serverUrl: "page1.html"
       });
     })
 
